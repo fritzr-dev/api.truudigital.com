@@ -1,0 +1,25 @@
+{
+    "name": "nwidart/accelohub",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Modules\\AcceloHub\\Providers\\AcceloHubServiceProvider"
+            ],
+            "aliases": {
+                
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\AcceloHub\\": ""
+        }
+    }
+}

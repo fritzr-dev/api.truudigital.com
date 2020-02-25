@@ -1,0 +1,186 @@
+.table>thead:first-child>tr:first-child>th.no-sort { padding-right:0px; }
+
+
+.table.table-noborder>thead>tr>th, .table.table-noborder>tbody>tr>th, 
+.table.table-noborder>tfoot>tr>th, .table.table-noborder>thead>tr>td, 
+.table.table-noborder>tbody>tr>td, .table.table-noborder>tfoot>tr>td { border:0px; }
+
+.btn-header { margin-left:15px; }
+
+
+
+ul.callout { padding-left:30px; }
+
+
+
+/* Media Library */
+#uploader { 
+  margin-bottom: 15px;
+}
+
+.media-library {
+  
+}
+
+.media-library:after {
+  content: "";
+  height: 0%;
+  display:block;
+  clear:both;
+  width:100%;
+  overflow:hidden;
+  margin:0px -10px;
+}
+
+.media-library-boxes {
+  height: 150px;
+  max-height: 150px;
+  width: 150px;
+  position:relative;
+  float:left;
+  margin:0px 10px 20px;
+}
+
+.media-library-close,
+.media-library-info {
+  font-size:17px;
+}
+
+.media-library-close {
+  color:#666;
+  display: inline-block;
+  position:absolute;
+  top:5px;
+  right:10px; 
+  opacity:0;
+  transition: opacity 300ms ease
+}
+
+a.media-library-close:focus,
+a.media-library-close:hover {
+  color:#dd4b39;
+}
+
+.media-library-boxes:hover .media-library-close {
+  opacity:1;
+}
+
+.media-library-info {
+  color:#666;
+  display: inline-block;
+  position:absolute;
+  top:5px;
+  right:25px;
+  opacity:0;
+  transition: opacity 300ms ease;
+}
+
+a.media-library-info:focus,
+a.media-library-info:hover {
+  color:#0073b7;
+}
+
+.media-library-boxes:hover .media-library-info {
+  opacity:1;
+}
+
+.media-library-boxes img {
+  max-width: 100%;
+}
+
+.media-library-description  {
+  position:absolute;
+  bottom:0px;
+  left:0px;
+  right:0px;
+  background-color:rgba(0,0,0,0.5);
+  color:#FFF;
+  padding:10px;
+  text-align: center;
+  white-space: nowrap; 
+  text-overflow: ellipsis;
+}
+
+.blk{display:block;}
+
+span.featured-image.active { cursor:pointer; position:relative; display:inline-block; }
+span.featured-image.active:after { content:"\f00d"; background:rgba(0,0,0,0.5); position: absolute;top:0px; left:0px; bottom:0px; right:0px; 
+display: inline-block;
+font: normal normal normal 40px FontAwesome;
+font-size: inherit;
+text-rendering: auto;
+-webkit-font-smoothing: antialiased;
+color:#FFFFFF;
+font-size:50px;
+text-align:center;padding-top:calc(50% - 25px);
+opacity:0;
+transition:opacity 300ms ease;
+}
+span.featured-image.active:hover:after {
+  opacity:1;
+}
+
+.box-body-image-choices { margin:0px -10px; }
+.box-body-image-choices .thumbnail { margin:0 10px; }
+.thumbnail.selected {
+  box-shadow:0px 0px 10px rgba(0,100,255,0.5)
+}
+
+
+   /*
+
+    Styles for animated modal
+    =========================
+
+    */
+
+    /* Start state */
+    .animated-modal {
+        max-width: 550px;
+        min-width: 320px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: linear-gradient(45deg, #543093 32%, #d960ae 100%);
+
+        transform: translateY(-80px);
+        transition: all .5s; /* Should match `data-animation-duration` parameter */
+    }
+
+    .animated-modal * {
+        color: #fff;
+    }
+
+    .animated-modal h2,
+    .animated-modal p {
+        transform: translateY(-40px);
+        opacity: 0;
+
+        transition-property: transform, opacity;
+        transition-duration: .3s;
+    }
+
+    /* Final state */
+    .fancybox-slide--current .animated-modal,
+    .fancybox-slide--current .animated-modal h2,
+    .fancybox-slide--current .animated-modal p {
+        transform: translateY(0);
+        opacity: 1;
+
+        transition-duration: .3s;
+    }
+
+    /* Reveal content with different delays */
+    .fancybox-slide--current .animated-modal h2 {
+        transition-delay: .1s;
+    }
+
+    .fancybox-slide--current .animated-modal p {
+        transition-delay: .4s;
+    }
+
+    .fancybox-slide--current .animated-modal p:first-of-type {
+        transition-delay: .2s;
+    }
+
+
+.modal-dialog.fancybox-content { padding:0px; }
