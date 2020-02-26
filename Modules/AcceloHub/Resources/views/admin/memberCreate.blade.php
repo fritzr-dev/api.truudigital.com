@@ -16,7 +16,7 @@
       </h1>
       <ol class="breadcrumb">
         <li><a href="{{ url('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li><a href="{{ url('admin/accelohub/members') }}">Acello Members</a></li>
+        <li><a href="{{ url('admin/accelohub/members') }}">Accelo Members</a></li>
         <li class="active">New Member</li>
       </ol>
     </section>
@@ -47,20 +47,22 @@
               <div class="box-body">
                 <div class="row">
                   <div class="col-sm-6 col-xs-12">
-                      <select name="accello_id" class="input-lg form-control">
-                        <option value="">Acello Members</option>
-                        @foreach($members_a as $member)
-                        <option value="{{$member->id}}" {{ old('member_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->title}}</option>
-                        @endforeach
-                      </select>
+                    <label>Accelo Members</label>
+                    <select name="accello_id" class="input-lg form-control">
+                      <option value="">Accelo Members</option>
+                      @foreach($members_a as $member)
+                      <option value="{{$member->id}}" {{ old('accello_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->name}}</option>
+                      @endforeach
+                    </select>
                   </div>
                   <div class="col-sm-6 col-xs-12">
-                      <select name="hubstaff_id" class="input-lg form-control">
-                        <option value="0">Hubstuff Members</option>
-                        @foreach($members_h as $member)
-                        <option value="{{$member->id}}" {{ old('member_id') == $member->id ? 'selected="selected"' : '' }}>{{$parent->title}}</option>
-                        @endforeach
-                      </select>
+                    <label>Hubstaff Members</label>
+                    <select name="hubstaff_id" class="input-lg form-control">
+                      <option value="0">Hubstaff Members</option>
+                      @foreach($members_h as $member)
+                      <option value="{{$member->id}}" {{ old('hubstaff_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->name}}</option>
+                      @endforeach
+                    </select>
                   </div>
                 </div>
               </div><!-- /.box-body -->

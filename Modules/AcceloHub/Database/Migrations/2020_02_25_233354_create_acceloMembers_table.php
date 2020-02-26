@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAccelloMembersTable extends Migration
+class CreateAcceloMembersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,13 @@ class CreateAccelloMembersTable extends Migration
      */
     public function up()
     {
-        Schema::create('accelloMembers', function (Blueprint $table) {
+        Schema::create('acceloMembers', function (Blueprint $table) {
             $table->bigIncrements('id');
-
+            $table->string('accelo_member_id')->unique();
+            $table->string('hubstaff_member_id')->unique();
+            $table->string('accelo_data');
+            $table->string('hubstaff_data');
+            $table->integer('status')->default();
             $table->timestamps();
         });
     }
@@ -27,6 +31,6 @@ class CreateAccelloMembersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('accelloMembers');
+        Schema::dropIfExists('acceloMembers');
     }
 }

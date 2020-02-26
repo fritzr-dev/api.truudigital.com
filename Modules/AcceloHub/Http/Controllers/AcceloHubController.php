@@ -5,6 +5,9 @@ namespace Modules\AcceloHub\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use DB, Route;
+
+use Modules\AcceloHub\Entities\AcceloMembers;
 
 class AcceloHubController extends Controller
 {
@@ -109,23 +112,121 @@ class AcceloHubController extends Controller
      * Display a listing of the members.
      * @return Response
      */
-    public function members()
+    public function members(Request $request)
     {
-        $members    = [];
-        $pagination = [];
+        $limit  = $request->get('limit', env('LIMIT'));
+        $search = $request->get('s');
+        $sort   = $request->get('sort');
+        $by     = $request->get('by');
 
-        return view('accelohub::admin.members', 
-                    [ 'members' => $members, 'pagination' => $pagination ]
-                );
+        $members = AcceloMembers::orderByRaw("id ASC");
+
+        if($search) {
+            $members = $members->where(function($q) use($search){
+              $q->where( 'accelo_member_id', 'like', "%$search%" );
+              $q->orWhere('hubstaff_member_id', 'like', "%$search%" );
+            });
+        }
+        
+        $pagination = $members->paginate($limit);
+
+        $members = $members->get();
+        $members->map(function ($user) {
+            $accelo_data    = json_decode($user->accelo_data);
+            $hubstaff_data  = json_decode($user->hubstaff_data);
+            if (isset($accelo_data->name)) {
+                $user->accelo_name = $accelo_data->name;
+            }
+            if (isset($hubstaff_data->name)) {
+                $user->hubstaff_name = $hubstaff_data->name;
+            }
+            $user->hubstaff_name = 'sdsadd';
+            return $user;
+        });
+
+
+        return view('accelohub::admin.members',[
+                    'members' => $members,
+                    'pagination' => $pagination
+                    ]);
+
     }
 
     public function memberCreate()
     {
         $members_a = [];
+        $members_a[] = array('id' => '1234', 'name' => 'Fritz' );
+        $members_a[] = array('id' => '5678', 'name' => 'Darryl' );
         $members_h = [];
+        $members_h[] = array('id' => '1111', 'name' => 'FritzR' );
+        $members_h[] = array('id' => '2222', 'name' => 'DarrylR' );        
+
+        $members_a = json_decode(json_encode($members_a), FALSE);
+        $members_h = json_decode(json_encode($members_h), FALSE);
+
         return view('accelohub::admin.memberCreate', 
                     ['members_a' => $members_a, 'members_h' => $members_h]
                 );
     } 
+
+    public function memberSave(Request $request)
+    {
+        #$request->get('meta')
+        $post = $request->all();
+
+        $member = AcceloMembers::where('accelo_member_id', $post['accello_id'])->get();
+
+        if($member->isNotEmpty()) {
+            return redirect('admin/accelohub/member/create')
+                        ->withErrors("Accelo member is already exists.")
+                        ->withInput();
+        } 
+
+        $data = ['name' => 'Fritz Darryl'];
+        $accelo_data    = json_encode($data);
+        $hubstaff_data  = json_encode($data);
+
+        $data = [
+                'accelo_member_id'      => $post['accello_id'],
+                'hubstaff_member_id'    => $post['hubstaff_id'],
+                'accelo_data'           => $accelo_data,
+                'hubstaff_data'         => $hubstaff_data,
+                'status'                => 1 ];
+
+        try {
+            $new_member = AcceloMembers::create($data);
+        } catch(\Exception $e) {
+            return redirect('admin/accelohub/member/create')
+                        ->withErrors($e->getMessage())
+                        ->withInput();
+        }
+
+        if($new_member) {
+            $message = 'Member successfully saved!';
+
+            return redirect()->
+                 to('admin/accelohub/members')->
+                 withSuccess($message)->
+                 send();
+        } else {
+            return redirect('admin/accelohub/member/create')
+                        ->withErrors("Data not save.")
+                        ->withInput();
+            #return redirect()->back()->withInput(['message' => 'Data not save']); 
+        }
+
+    } //memberSave
+
+    public function memberDestroy($id)
+    {
+      $member = AcceloMembers::find($id);
+      if(!$member) {
+        return redirect()->to('admin/accelohub/members')->withErrors(['msg','Something went wrong.']);
+      }
+
+      $member->delete();
+
+      return redirect()->to('admin/accelohub/members')->withSuccess('Member successfully deleted.');
+    }    
 
 }

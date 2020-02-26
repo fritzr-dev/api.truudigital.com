@@ -21,6 +21,13 @@ Route::group([
 	    Route::get('/', 'AcceloHubController@index');
 	    Route::get('/members', 'AcceloHubController@members');
 	    Route::get('/member/create', 'AcceloHubController@memberCreate');
+
+	    Route::post('/member/save', 'AcceloHubController@memberSave');
+
+	    Route::get('/member/{id}/delete', [
+	      'uses' => 'AcceloHubController@memberDestroy',
+	      'as' => 'module.admin.member.delete'
+	    ]);	    
 	});
 
 });

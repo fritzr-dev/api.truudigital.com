@@ -49,21 +49,24 @@
                   <th width="40">ID</th>
                   <th>Acello</th>
                   <th>Hubstaff</th>
+                  <th>Date Created</th>
+                  <th>Status</th>
                   <th colspan="2">Action</th>
                 </tr>
                 @forelse($members as $member)
                 <tr>
                   <td>{{ $member->id }}</td>
-                  <td>{!! ( $member->parent_id != 0 ? '&mdash; ' : '' ) . $member->title !!}</td>
+                  <td><strong>{{ $member->accelo_member_id }}</strong> - {{ $member->accelo_name }}</td>
+                  <td><strong>{{ $member->hubstaff_member_id }}</strong> - {{ $member->hubstaff_name }}</td>
                   <td>{{ $member->created_at->diffForHumans() }}</td>
                   <td>
                     @if( $member->status )
-                    <span class="label label-success">Published</span></td>
+                    <span class="label label-success">Active</span></td>
                     @else
-                    <span class="label label-warning">Draft</span></td>
+                    <span class="label label-warning">Inactive</span></td>
                     @endif
-                  <td width="30"><a data-toggle="tooltip" title="Edit" href="{{ url('admin/' .$post_type. '/' . $member->id . '/update') }}"><i class="fa fa-edit"></i></a></td>
-                  <td width="30"><a data-toggle="tooltip" title="Delete" data-href="{{ url('admin/' .$post_type. '/' . $member->id . '/delete') }}" data-delete-item="" href="#"><i class="fa fa-trash"></i></a></td>
+                  <td width="30"><a data-toggle="tooltip" title="Edit" href="{{ url('admin/accelohub/member/' . $member->id . '/update') }}"><i class="fa fa-edit"></i></a></td>
+                  <td width="30"><a data-toggle="tooltip" title="Delete" href="{{ url('admin/accelohub/member/' . $member->id . '/delete') }}" onclick="return confirm('Are you sure you want to delete this item')"><i class="fa fa-trash"></i></a></td>
                 </tr>
                 @empty
                 <tr>
