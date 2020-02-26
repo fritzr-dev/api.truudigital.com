@@ -12,12 +12,12 @@
     
     <section class="content-header">
       <h1>
-        New Member <a class="btn btn-danger" href="{{ url('admin/accelohub/members') }}">Cancel</a>
+        Edit Member <a class="btn btn-danger" href="{{ url('admin/accelohub/members') }}">Cancel</a>
       </h1>
       <ol class="breadcrumb">
         <li><a href="{{ url('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
         <li><a href="{{ url('admin/accelohub/members') }}">Accelo Members</a></li>
-        <li class="active">New Member</li>
+        <li class="active">Edit Member</li>
       </ol>
     </section>
 
@@ -33,16 +33,15 @@
         </ul>
       @endif
 
-
-
       <div class="row">
         <div class="col-lg-6">
-          <form action="{{ url('admin/accelohub/member/save') }}" method="post">
+          <form action="{{ url('admin/accelohub/member/update') }}" method="post">
+            <input type="hidden" name="id" value="{{ $entry->id }}">
             @csrf
 
             <div class="box box-danger">
               <div class="box-header with-border">
-                <h3 class="box-title">New Member</h3>
+                <h3 class="box-title">Edit Member</h3>
               </div>
               <div class="box-body">
                 <div class="row">
@@ -51,7 +50,7 @@
                     <select name="accello_id" class="input-lg form-control">
                       <option value="">Accelo Members</option>
                       @foreach($members_a as $member)
-                      <option value="{{$member->id}}" {{ old('accello_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->name}}  {{$member->id}}</option>
+                      <option value="{{$member->id}}" {{ old('accello_id', $entry->accello_id) == $member->id ? 'selected="selected"' : '' }}>{{$member->name}} {{$member->id}}</option>
                       @endforeach
                     </select>
                   </div>
@@ -60,7 +59,7 @@
                     <select name="hubstaff_id" class="input-lg form-control">
                       <option value="0">Hubstaff Members</option>
                       @foreach($members_h as $member)
-                      <option value="{{$member->id}}" {{ old('hubstaff_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->name}}  {{$member->id}}</option>
+                      <option value="{{$member->id}}" {{ old('hubstaff_id', $entry->hubstaff_id) == $member->id ? 'selected="selected"' : '' }}>{{$member->name}} {{$member->id}}</option>
                       @endforeach
                     </select>
                   </div>
@@ -68,7 +67,7 @@
               </div><!-- /.box-body -->
               <div class="box-footer">
                 <a href="{{ url('admin/accelohub/members') }}" class="btn btn-default">Cancel</a>
-                <button type="submit" class="btn btn-info pull-right">Save</button>
+                <button type="submit" class="btn btn-info pull-right">Update</button>
               </div>
 
             </div>

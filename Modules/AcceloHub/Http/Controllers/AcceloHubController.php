@@ -140,7 +140,7 @@ class AcceloHubController extends Controller
             if (isset($hubstaff_data->name)) {
                 $user->hubstaff_name = $hubstaff_data->name;
             }
-            $user->hubstaff_name = 'sdsadd';
+            $user->hubstaff_name = $accelo_data->name;
             return $user;
         });
 
@@ -167,7 +167,7 @@ class AcceloHubController extends Controller
         return view('accelohub::admin.memberCreate', 
                     ['members_a' => $members_a, 'members_h' => $members_h]
                 );
-    } 
+    } //memberCreate
 
     public function memberSave(Request $request)
     {
@@ -202,11 +202,9 @@ class AcceloHubController extends Controller
         }
 
         if($new_member) {
-            $message = 'Member successfully saved!';
-
             return redirect()->
                  to('admin/accelohub/members')->
-                 withSuccess($message)->
+                 withSuccess('Member successfully saved!')->
                  send();
         } else {
             return redirect('admin/accelohub/member/create')
@@ -216,6 +214,63 @@ class AcceloHubController extends Controller
         }
 
     } //memberSave
+
+
+    public function memberEdit($id)
+    {
+      $entry = AcceloMembers::find($id);
+      if(!$entry) {
+        return redirect()->to('admin/accelohub/members')->withErrors(['msg','Something went wrong.']);
+      }
+
+        $members_a = [];
+        $members_a[] = array('id' => '1234', 'name' => 'Fritz' );
+        $members_a[] = array('id' => '5678', 'name' => 'Darryl' );
+        $members_h = [];
+        $members_h[] = array('id' => '1111', 'name' => 'FritzR' );
+        $members_h[] = array('id' => '2222', 'name' => 'DarrylR' );        
+
+        $members_a = json_decode(json_encode($members_a), FALSE);
+        $members_h = json_decode(json_encode($members_h), FALSE);
+
+        return view('accelohub::admin.memberEdit', 
+                    ['entry' => $entry, 'members_a' => $members_a, 'members_h' => $members_h]
+                );
+    } //memberEdit
+
+    public function memberUpdate(Request $request)
+    {
+        $id =  $request->post('id');
+        $entry = AcceloMembers::find($id);
+        if(!$entry) {
+        return redirect()->to('admin/accelohub/members')->withErrors(['msg','Something went wrong.']);
+        }
+
+        $post = $request->all();
+
+        $data = ['name' => 'Fritz Darryl Roca'];
+        $accelo_data    = json_encode($data);
+        $hubstaff_data  = json_encode($data);
+
+        $data = [
+                'accelo_member_id'      => $post['accello_id'],
+                'hubstaff_member_id'    => $post['hubstaff_id'],
+                'accelo_data'           => $accelo_data,
+                'hubstaff_data'         => $hubstaff_data];
+
+        try {
+            $entry->update($data);
+        } catch(\Exception $e) {
+            return redirect("admin/accelohub/member/$id/edit")
+                        ->withErrors($e->getMessage())
+                        ->withInput();
+        }
+
+        return redirect()->
+                 to('admin/accelohub/members')->
+                 withSuccess('Member successfully updated!')->
+                 send();
+    } //memberUpdate    
 
     public function memberDestroy($id)
     {
@@ -227,6 +282,6 @@ class AcceloHubController extends Controller
       $member->delete();
 
       return redirect()->to('admin/accelohub/members')->withSuccess('Member successfully deleted.');
-    }    
+    } //memberDestroy
 
 }

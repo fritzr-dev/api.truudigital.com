@@ -65,7 +65,7 @@
                     @else
                     <span class="label label-warning">Inactive</span></td>
                     @endif
-                  <td width="30"><a data-toggle="tooltip" title="Edit" href="{{ url('admin/accelohub/member/' . $member->id . '/update') }}"><i class="fa fa-edit"></i></a></td>
+                  <td width="30"><a data-toggle="tooltip" title="Edit" href="{{ url('admin/accelohub/member/' . $member->id . '/edit') }}"><i class="fa fa-edit"></i></a></td>
                   <td width="30"><a data-toggle="tooltip" title="Delete" href="{{ url('admin/accelohub/member/' . $member->id . '/delete') }}" onclick="return confirm('Are you sure you want to delete this item')"><i class="fa fa-trash"></i></a></td>
                 </tr>
                 @empty

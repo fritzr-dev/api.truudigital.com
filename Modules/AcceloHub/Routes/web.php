@@ -27,7 +27,14 @@ Route::group([
 	    Route::get('/member/{id}/delete', [
 	      'uses' => 'AcceloHubController@memberDestroy',
 	      'as' => 'module.admin.member.delete'
-	    ]);	    
+	    ]);	 
+
+	    Route::get('/member/{id}/edit', [
+	      'uses' => 'AcceloHubController@memberEdit'
+	    ]);
+
+	    Route::post('/member/update', 'AcceloHubController@memberUpdate');
+
 	});
 
 });
