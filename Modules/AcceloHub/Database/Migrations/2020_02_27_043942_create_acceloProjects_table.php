@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAccelloSyncLogsTable extends Migration
+class CreateAcceloProjectsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,10 @@ class CreateAccelloSyncLogsTable extends Migration
      */
     public function up()
     {
-        Schema::create('accelloSyncLogs', function (Blueprint $table) {
+        Schema::create('acceloProjects', function (Blueprint $table) {
             $table->bigIncrements('id');
-
+            $table->string('accelo_project_id');
+            $table->string('hubstaff_project_id');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ class CreateAccelloSyncLogsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('accelloSyncLogs');
+        Schema::dropIfExists('acceloProjects');
     }
 }

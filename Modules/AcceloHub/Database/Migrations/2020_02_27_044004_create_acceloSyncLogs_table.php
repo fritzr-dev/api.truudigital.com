@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAccelloTasksTable extends Migration
+class CreateAcceloSyncLogsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateAccelloTasksTable extends Migration
      */
     public function up()
     {
-        Schema::create('accelloTasks', function (Blueprint $table) {
+        Schema::create('acceloSyncLogs', function (Blueprint $table) {
             $table->bigIncrements('id');
-
+            $table->string('module');
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ class CreateAccelloTasksTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('accelloTasks');
+        Schema::dropIfExists('acceloSyncLogs');
     }
 }

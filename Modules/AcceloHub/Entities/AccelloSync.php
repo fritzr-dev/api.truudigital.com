@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class AccelloSync extends Model
 {
-    protected $fillable = [];
+	protected $table = 'acceloSyncLogs';
+	protected $fillable = ['module'];
 }

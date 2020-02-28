@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAccelloClientsTable extends Migration
+class CreateAcceloClientsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,10 @@ class CreateAccelloClientsTable extends Migration
      */
     public function up()
     {
-        Schema::create('accelloClients', function (Blueprint $table) {
+        Schema::create('acceloClients', function (Blueprint $table) {
             $table->bigIncrements('id');
-
+            $table->string('accelo_client_id');
+            $table->string('hubstaff_client_id');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ class CreateAccelloClientsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('accelloClients');
+        Schema::dropIfExists('acceloClients');
     }
 }
