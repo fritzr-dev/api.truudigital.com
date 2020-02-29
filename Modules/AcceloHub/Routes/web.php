@@ -35,6 +35,9 @@ Route::group([
 
 	    Route::post('/member/update', 'AcceloHubController@memberUpdate');
 
+
 	});
 
 });
+	    
+Route::get('/accelo/member', 'AcceloHubController@getAcceloMembers');

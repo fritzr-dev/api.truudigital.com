@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use DB, Route;
 
 use Modules\AcceloHub\Entities\AcceloMembers;
+use Modules\AcceloHub\Entities\AccelloConnect;
 
 class AcceloHubController extends Controller
 {
@@ -215,7 +216,6 @@ class AcceloHubController extends Controller
 
     } //memberSave
 
-
     public function memberEdit($id)
     {
       $entry = AcceloMembers::find($id);
@@ -284,4 +284,33 @@ class AcceloHubController extends Controller
       return redirect()->to('admin/accelohub/members')->withSuccess('Member successfully deleted.');
     } //memberDestroy
 
+    public function getAcceloMembers(){
+
+      $members      = AccelloConnect::getToken();
+      $access_token = AccelloConnect::$access_token;
+
+      $curl = curl_init();
+
+      curl_setopt_array($curl, array(
+        CURLOPT_URL => "https://truudigital.api.accelo.com/api/v0/staff",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => array(
+          "Content-Type: application/x-www-form-urlencoded",
+          "Authorization: Bearer $access_token"
+        ),
+      ));
+
+      $response = curl_exec($curl);
+
+      curl_close($curl);
+      echo $response;
+
+
+    }
 }
