@@ -27,7 +27,7 @@ Route::group([
 	    Route::get('/member/{id}/delete', [
 	      'uses' => 'AcceloHubController@memberDestroy',
 	      'as' => 'module.admin.member.delete'
-	    ]);	 
+	    ]);
 
 	    Route::get('/member/{id}/edit', [
 	      'uses' => 'AcceloHubController@memberEdit'
@@ -39,5 +39,12 @@ Route::group([
 	});
 
 });
-	    
-Route::get('/accelo/member', 'AcceloHubController@getAcceloMembers');
+
+Route::get('/accelo/members', 'AcceloHubController@getAcceloMembers');
+Route::get('/accelo/companies', 'AcceloHubController@getAcceloCompanies');
+Route::get('/accelo/projects', 'AcceloHubController@getProjects');
+Route::get('/accelo/tasks', 'AcceloHubController@getAcceloTasks');
+Route::get('/accelo/activities', 'AcceloHubController@getAcceloActivities');
+
+Route::get('/accelo/developer', 'AcceloHubController@developer');
+Route::get('/accelo/reset', 'AcceloHubController@resetToken');

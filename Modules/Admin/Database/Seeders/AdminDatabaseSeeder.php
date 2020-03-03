@@ -66,11 +66,11 @@ class AdminDatabaseSeeder extends Seeder
       ]),
       new Usermeta([
         'metakey' => 'middle_name',
-        'metavalue' => ''
+        'metavalue' => 'Marketing'
       ]),
       new Usermeta([
         'metakey' => 'last_name',
-        'metavalue' => ''
+        'metavalue' => 'Dev'
       ]),
       new Usermeta([
         'metakey' => 'address',

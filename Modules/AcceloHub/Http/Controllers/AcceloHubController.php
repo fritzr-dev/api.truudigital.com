@@ -270,7 +270,7 @@ class AcceloHubController extends Controller
                  to('admin/accelohub/members')->
                  withSuccess('Member successfully updated!')->
                  send();
-    } //memberUpdate    
+    } //memberUpdate
 
     public function memberDestroy($id)
     {
@@ -284,33 +284,87 @@ class AcceloHubController extends Controller
       return redirect()->to('admin/accelohub/members')->withSuccess('Member successfully deleted.');
     } //memberDestroy
 
+
     public function getAcceloMembers(){
 
-      $members      = AccelloConnect::getToken();
-      $access_token = AccelloConnect::$access_token;
+      $result  = AccelloConnect::getStaff();
 
-      $curl = curl_init();
+      $data = [];
+      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+        $data = $result['response'];
+      } else {
+        $data = $result;
+      }
 
-      curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://truudigital.api.accelo.com/api/v0/staff",
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => "",
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => "GET",
-        CURLOPT_HTTPHEADER => array(
-          "Content-Type: application/x-www-form-urlencoded",
-          "Authorization: Bearer $access_token"
-        ),
-      ));
+      return response()->json($data);
+    } //getAcceloMembers
 
-      $response = curl_exec($curl);
+    public function getAcceloCompanies(){
 
-      curl_close($curl);
-      echo $response;
+      $result  = AccelloConnect::getCompanies();
 
+      $data = [];
+      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+        $data = $result['response'];
+      } else {
+        $data = $result;
+      }
 
+      return response()->json($data);
+    } //getAcceloCompanies
+
+    public function getProjects(){
+
+      $result  = AccelloConnect::getProjects();
+
+      $data = [];
+      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+        $data = $result['response'];
+      } else {
+        $data = $result;
+      }
+
+      return response()->json($data);
+    } //getAcceloJobs
+
+    public function getAcceloTasks(){
+
+      $result  = AccelloConnect::getTasks();
+
+      $data = [];
+      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+        $data = $result['response'];
+      } else {
+        $data = $result;
+      }
+
+      return response()->json($data);
+    } //getAcceloTasks
+
+    public function getAcceloActivities(){
+
+      $result  = AccelloConnect::getActivities();
+
+      $data = [];
+      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+        $data = $result['response'];
+      } else {
+        $data = $result;
+      }
+
+      return response()->json($data);
+    } //getAcceloActivities
+
+    public function resetToken(){
+      echo $result  = AccelloConnect::resetToken();
+    } //resetToken
+
+    public function developer(){
+
+      $post = array();
+      $post["grant_type"] = 'client_credentials';
+      $post["scope"]      = "read(companies,jobs,tasks,activities),write(activities)";
+
+      echo http_build_query($post);
     }
 }
