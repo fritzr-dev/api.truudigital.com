@@ -76,4 +76,10 @@ class HubstaffController extends Controller
     {
         //
     }
+
+    public function developer()
+    {
+        
+    }
+
 }
