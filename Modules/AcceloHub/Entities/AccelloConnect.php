@@ -14,9 +14,14 @@ class AccelloConnect extends Model
     static $client_token = [];
     static $access_token = '';
 
+    public function __construct()
+    {
+        session_start();
+    }
+
 	public static function getToken(){
 		#$token = session('ACCELO_TOKEN');
-
+		session_start();
 		$token = isset($_SESSION['ACCELO_TOKEN'])? $_SESSION['ACCELO_TOKEN'] : '';
 
 		if($token) {
@@ -25,12 +30,12 @@ class AccelloConnect extends Model
 		} else {
 			return self::oauth();
 		}
-	}
+	} //getToken
 
 	public static function resetToken(){
-
-		if (isset($_SESSION['ACCELO_CLIENT'])) {
-			unset($_SESSION['ACCELO_CLIENT']);
+		session_start();
+		if (isset($_SESSION['ACCELO_TOKEN'])) {
+			unset($_SESSION['ACCELO_TOKEN']);
 		}
 
 		/*Session::forget('ACCELO_CLIENT');
@@ -38,8 +43,24 @@ class AccelloConnect extends Model
 		self::$client_token = '';
 		self::$access_token = '';
 
-		return self::oauth();
-	}
+		#return self::oauth();
+	} //resetToken
+
+	public static function status(){
+		session_start();
+		echo '<pre>';
+		if (isset($_SESSION['ACCELO_TOKEN'])) {
+			print_r($_SESSION['ACCELO_TOKEN']);
+		}
+		if (isset($_SESSION['ACCELO_CLIENT'])) {
+			print_r($_SESSION['ACCELO_CLIENT']);
+		}
+
+		echo '</pre>';
+
+		#return self::oauth();
+	} //resetToken
+
 	public static function oauth(){
 
 		$client_credentials = base64_encode(self::$client_ID.":".self::$client_secret);
@@ -48,9 +69,9 @@ class AccelloConnect extends Model
 
 		$post = [];
 		$post["grant_type"] = 'client_credentials';
-		$post["scope"] 		= "read(companies,jobs,tasks,activities),write(activities)";
+		$post["scope"] 		= "read(staff,companies,jobs,tasks,activities),write(activities)";
 		$post_data = http_build_query($post);
-		
+
 		curl_setopt_array($curl, array(
 		  CURLOPT_URL => "https://truudigital.api.accelo.com/oauth2/v0/token",
 		  CURLOPT_RETURNTRANSFER => true,
@@ -58,10 +79,10 @@ class AccelloConnect extends Model
 		  CURLOPT_MAXREDIRS => 10,
 		  CURLOPT_TIMEOUT => 0,
 		  CURLOPT_FOLLOWLOCATION => true,
-		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,	
 		  CURLOPT_CUSTOMREQUEST => "POST",
-  		  CURLOPT_POSTFIELDS => $post_data, 
-  		  //CURLOPT_POSTFIELDS => "grant_type=client_credentials&scope=read%28companies%2Cjobs%2Ctasks%2Cactivities%29%2Cwrite%28activities%29",
+  		  #CURLOPT_POSTFIELDS => $post_data, 
+  		  CURLOPT_POSTFIELDS => "grant_type=client_credentials&scope=read%28staff%2Ccompanies%2Cjobs%2Ctasks%2Cactivities%29%2Cwrite%28activities%29",
 		  CURLOPT_HTTPHEADER => array(
 		    "Content-Type: application/x-www-form-urlencoded",
 		    "authorization: Basic $client_credentials"
@@ -76,6 +97,8 @@ class AccelloConnect extends Model
 		self::$client_token = $result;
 		self::$access_token = $result['access_token'];
 
+		if (!session_id()) session_start();
+
 		$_SESSION['ACCELO_CLIENT'] = self::$client_token;
 		$_SESSION['ACCELO_TOKEN'] = self::$access_token;
 
@@ -84,7 +107,7 @@ class AccelloConnect extends Model
 		Session::put('ACCELO_CLIENT', self::$client_token);
 		Session::put('ACCELO_TOKEN', self::$access_token);
 
-	} //getToken
+	} //oauth
 
 	public static function curlAccelo($params = array()){
 
