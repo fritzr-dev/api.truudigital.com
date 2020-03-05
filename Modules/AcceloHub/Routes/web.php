@@ -56,15 +56,18 @@ Route::prefix('accelo')->group(function() {
 
 
 Route::prefix('hubstaff')->group(function() {
-	Route::get('/', 'AcceloController@index');
+	Route::get('/', 'HubstaffController@index');
 	
-	Route::get('/members', 'AcceloController@getAcceloMembers');
-	Route::get('/companies', 'AcceloController@getAcceloCompanies');
-	Route::get('/projects', 'AcceloController@getProjects');
-	Route::get('/tasks', 'AcceloController@getAcceloTasks');
-	Route::get('/activities', 'AcceloController@getAcceloActivities');
-	Route::get('/reset', 'AcceloController@resetToken');
+	Route::get('/members', 'HubstaffController@getAcceloMembers');
+	Route::get('/companies', 'HubstaffController@getAcceloCompanies');
+	Route::get('/projects', 'HubstaffController@getProjects');
+	Route::get('/tasks', 'HubstaffController@getAcceloTasks');
+	Route::get('/activities', 'HubstaffController@getAcceloActivities');
+	Route::get('/reset', 'HubstaffController@resetToken');
 
-	Route::get('/status', 'AcceloController@status');
-	Route::get('/developer', 'AcceloController@developer');
+	Route::get('/oauth', 'HubstaffController@oauth');
+	
+	Route::get('/status', 'HubstaffController@status');
+	Route::get('/developer', 'HubstaffController@developer');
+	Route::get('/connect', 'HubstaffController@connect');
 });
