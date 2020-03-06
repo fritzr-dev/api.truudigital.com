@@ -66,8 +66,8 @@ Route::prefix('hubstaff')->group(function() {
 	Route::get('/reset', 'HubstaffController@resetToken');
 
 	Route::get('/oauth', 'HubstaffController@oauth');
+	Route::get('/connect', 'HubstaffController@connect');
 	
 	Route::get('/status', 'HubstaffController@status');
 	Route::get('/developer', 'HubstaffController@developer');
-	Route::get('/connect', 'HubstaffController@connect');
 });
