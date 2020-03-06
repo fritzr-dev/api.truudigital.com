@@ -35,6 +35,7 @@ Route::group([
 
 	    Route::post('/member/update', 'AcceloHubController@memberUpdate');
 
+	    Route::get('/organization', 'AcceloHubController@organization');
 
 	});
 
@@ -58,15 +59,16 @@ Route::prefix('accelo')->group(function() {
 Route::prefix('hubstaff')->group(function() {
 	Route::get('/', 'HubstaffController@index');
 	
-	Route::get('/members', 'HubstaffController@getAcceloMembers');
-	Route::get('/companies', 'HubstaffController@getAcceloCompanies');
+	Route::get('/members', 'HubstaffController@getOrganizationMembers');
+	Route::get('/companies', 'HubstaffController@getClients');
 	Route::get('/projects', 'HubstaffController@getProjects');
-	Route::get('/tasks', 'HubstaffController@getAcceloTasks');
-	Route::get('/activities', 'HubstaffController@getAcceloActivities');
+	Route::get('/tasks', 'HubstaffController@getTasks');
+	Route::get('/activities', 'HubstaffController@getActivities');
 	Route::get('/reset', 'HubstaffController@resetToken');
 
 	Route::get('/oauth', 'HubstaffController@oauth');
 	Route::get('/connect', 'HubstaffController@connect');
+	Route::get('/refreshToken', 'HubstaffController@refreshtoken');
 	
 	Route::get('/status', 'HubstaffController@status');
 	Route::get('/developer', 'HubstaffController@developer');

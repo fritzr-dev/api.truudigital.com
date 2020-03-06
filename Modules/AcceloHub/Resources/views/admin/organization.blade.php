@@ -11,11 +11,11 @@
     
     <section class="content-header">
       <h1>
-        Members <a class="btn btn-success btn-header" href="{{ url('admin/accelohub/member/create') }}">New</a>
+        Organization/Clients
       </h1>
       <ol class="breadcrumb">
         <li><a href="{{ url('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li class="active">Members</li>
+        <li class="active">Organization/Clients</li>
       </ol>
     </section>
 
@@ -28,10 +28,10 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">Members</h3>
+              <h3 class="box-title">Organization/Clients</h3>
 
               <div class="box-tools">
-                <form method="get" action="{{ url('admin/accelohub/members') }}">
+                <form method="get" action="{{ url('admin/accelohub/organization') }}">
                   <div class="input-group input-group-sm" style="width: 150px;">
                     <input type="text" name="s" class="form-control pull-right" placeholder="Search" value="{{ request('s') }}" />
 
@@ -66,12 +66,10 @@
                     <span class="label label-warning">Inactive</span>
                     @endif
                   </td>
-                  <td width="30"><a data-toggle="tooltip" title="Edit" href="{{ url('admin/accelohub/member/' . $member->id . '/edit') }}"><i class="fa fa-edit"></i></a></td>
-                  <td width="30"><a data-toggle="tooltip" title="Delete" href="{{ url('admin/accelohub/member/' . $member->id . '/delete') }}" onclick="return confirm('Are you sure you want to delete this item')"><i class="fa fa-trash"></i></a></td>
                 </tr>
                 @empty
                 <tr>
-                  <td colspan="6"><a href="{{ url('admin/accelohub/member/create') }}" class="btn btn-success btn-header">New Member</a></td>
+                  <td colspan="6"><a href="{{ url('admin/accelohub/organization/sync') }}" class="btn btn-success btn-header">Resync to Hubstaff</a></td>
                 </tr>
                 @endforelse
               </table>

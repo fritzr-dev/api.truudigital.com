@@ -9,6 +9,7 @@ use DB, Route;
 
 use Modules\AcceloHub\Entities\AcceloMembers;
 use Modules\AcceloHub\Entities\AccelloConnect;
+use Modules\AcceloHub\Entities\HubstaffConnect;
 
 class AcceloHubController extends Controller
 {
@@ -135,13 +136,18 @@ class AcceloHubController extends Controller
         $members->map(function ($user) {
             $accelo_data    = json_decode($user->accelo_data);
             $hubstaff_data  = json_decode($user->hubstaff_data);
-            if (isset($accelo_data->name)) {
-                $user->accelo_name = $accelo_data->name;
+            $email = '';
+            if (isset($accelo_data->firstname)) {
+                $user->accelo_name = "$accelo_data->firstname $accelo_data->surname";
+                $email = $accelo_data->email;
             }
             if (isset($hubstaff_data->name)) {
                 $user->hubstaff_name = $hubstaff_data->name;
+                $email = $hubstaff_data->email;
             }
-            $user->hubstaff_name = $accelo_data->name;
+
+            $user->email = $email;
+            #dd($accelo_data, $hubstaff_data, $user);
             return $user;
         });
 
@@ -153,20 +159,53 @@ class AcceloHubController extends Controller
 
     }
 
-    public function memberCreate()
-    {
-        $members_a = [];
+    public function getAcceloHubMembers(){
+      if(isset($_SESSION['ACCELO_MEMBERS']) ){
+        $members_a = $_SESSION['ACCELO_MEMBERS'];
+      } else {
+        $members_a = AccelloConnect::getStaff();
+        $_SESSION['ACCELO_MEMBERS'] = $members_a;
+      }
+
+      if(isset($_SESSION['HUBSTAFF_MEMBERS']) ){
+        $members_h = $_SESSION['HUBSTAFF_MEMBERS'];
+      } else {
+        $members_h = HubstaffConnect::getOrganizationMembers();
+        $_SESSION['HUBSTAFF_MEMBERS'] = $members_h;
+        $members = array();
+        foreach ($members_h as $key => $member) {
+          $user_id  = $member['user_id'];
+          $user     = HubstaffConnect::getUser($user_id);
+          $members[] = array_merge($member, $user);
+        }
+        $_SESSION['HUBSTAFF_MEMBERS'] = $members;
+        $members_h = $members;
+      }
+      return compact("members_a", "members_h");
+
+
+      #dd($members_a, $members_h);
+        /*$members_a = [];
         $members_a[] = array('id' => '1234', 'name' => 'Fritz' );
         $members_a[] = array('id' => '5678', 'name' => 'Darryl' );
         $members_h = [];
         $members_h[] = array('id' => '1111', 'name' => 'FritzR' );
-        $members_h[] = array('id' => '2222', 'name' => 'DarrylR' );        
+        $members_h[] = array('id' => '2222', 'name' => 'DarrylR' );*/      
+    } //getAcceloHubMembers
 
-        $members_a = json_decode(json_encode($members_a), FALSE);
-        $members_h = json_decode(json_encode($members_h), FALSE);
+    public function memberCreate()
+    {
+      $accelo_connection    = false;#AccelloConnect::getToken();
+      $hubstaff_connection  = false;
 
-        return view('accelohub::admin.memberCreate', 
-                    ['members_a' => $members_a, 'members_h' => $members_h]
+      $members = $this->getAcceloHubMembers();
+      extract($members);
+
+      $members_a = json_decode(json_encode($members_a), FALSE);
+      $members_h = json_decode(json_encode($members_h), FALSE);
+
+      return view('accelohub::admin.memberCreate', 
+                  ['members_a' => $members_a, 'members_h' => $members_h]
                 );
     } //memberCreate
 
@@ -183,9 +222,22 @@ class AcceloHubController extends Controller
                         ->withInput();
         } 
 
-        $data = ['name' => 'Fritz Darryl'];
-        $accelo_data    = json_encode($data);
-        $hubstaff_data  = json_encode($data);
+        $members = $this->getAcceloHubMembers();
+        extract($members);
+
+        $accelo_data = ''; $hubstaff_data = '';
+        foreach ($members_a as $key => $member) {
+          if($post['accello_id'] == $member['id']) {
+            $accelo_data    = json_encode($member);
+            break;
+          }
+        }
+        foreach ($members_h as $key => $member) {
+          if($post['hubstaff_id'] == $member['id']) {
+            $hubstaff_data    = json_encode($member);
+            break;
+          }
+        }
 
         $data = [
                 'accelo_member_id'      => $post['accello_id'],
@@ -193,7 +245,6 @@ class AcceloHubController extends Controller
                 'accelo_data'           => $accelo_data,
                 'hubstaff_data'         => $hubstaff_data,
                 'status'                => 1 ];
-
         try {
             $new_member = AcceloMembers::create($data);
         } catch(\Exception $e) {
@@ -223,15 +274,14 @@ class AcceloHubController extends Controller
         return redirect()->to('admin/accelohub/members')->withErrors(['msg','Something went wrong.']);
       }
 
-        $members_a = [];
-        $members_a[] = array('id' => '1234', 'name' => 'Fritz' );
-        $members_a[] = array('id' => '5678', 'name' => 'Darryl' );
-        $members_h = [];
-        $members_h[] = array('id' => '1111', 'name' => 'FritzR' );
-        $members_h[] = array('id' => '2222', 'name' => 'DarrylR' );        
+      $accelo_connection    = false;#AccelloConnect::getToken();
+      $hubstaff_connection  = false;
 
-        $members_a = json_decode(json_encode($members_a), FALSE);
-        $members_h = json_decode(json_encode($members_h), FALSE);
+      $members = $this->getAcceloHubMembers();
+      extract($members);
+
+      $members_a = json_decode(json_encode($members_a), FALSE);
+      $members_h = json_decode(json_encode($members_h), FALSE);
 
         return view('accelohub::admin.memberEdit', 
                     ['entry' => $entry, 'members_a' => $members_a, 'members_h' => $members_h]
@@ -283,5 +333,50 @@ class AcceloHubController extends Controller
 
       return redirect()->to('admin/accelohub/members')->withSuccess('Member successfully deleted.');
     } //memberDestroy
+
+    public function organization(Request $request)
+    {
+        $limit  = $request->get('limit', env('LIMIT'));
+        $search = $request->get('s');
+        $sort   = $request->get('sort');
+        $by     = $request->get('by');
+
+        $members = AcceloMembers::orderByRaw("id ASC");
+
+        if($search) {
+            $members = $members->where(function($q) use($search){
+              $q->where( 'accelo_member_id', 'like', "%$search%" );
+              $q->orWhere('hubstaff_member_id', 'like', "%$search%" );
+            });
+        }
+        
+        $pagination = $members->paginate($limit);
+
+        $members = $members->get();
+        $members->map(function ($user) {
+            $accelo_data    = json_decode($user->accelo_data);
+            $hubstaff_data  = json_decode($user->hubstaff_data);
+            $email = '';
+            if (isset($accelo_data->firstname)) {
+                $user->accelo_name = "$accelo_data->firstname $accelo_data->surname";
+                $email = $accelo_data->email;
+            }
+            if (isset($hubstaff_data->name)) {
+                $user->hubstaff_name = $hubstaff_data->name;
+                $email = $hubstaff_data->email;
+            }
+
+            $user->email = $email;
+            #dd($accelo_data, $hubstaff_data, $user);
+            return $user;
+        });
+
+
+        return view('accelohub::admin.members',[
+                    'members' => $members,
+                    'pagination' => $pagination
+                    ]);
+
+    } //organization 
 
 }

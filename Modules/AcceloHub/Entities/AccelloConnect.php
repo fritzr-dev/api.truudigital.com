@@ -13,15 +13,17 @@ class AccelloConnect extends Model
     static $client_secret = 'hkOxhZz2BvbfCxJAFqgrw9Hs3ZOGigH8';
     static $client_token = [];
     static $access_token = '';
+    static $return_error = false;
 
     public function __construct()
     {
-        session_start();
+        if (!session_id()) session_start();
     }
 
 	public static function getToken(){
 		#$token = session('ACCELO_TOKEN');
-		session_start();
+		if (!session_id()) session_start();
+
 		$token = isset($_SESSION['ACCELO_TOKEN'])? $_SESSION['ACCELO_TOKEN'] : '';
 
 		if($token) {
@@ -33,7 +35,8 @@ class AccelloConnect extends Model
 	} //getToken
 
 	public static function resetToken(){
-		session_start();
+		if (!session_id()) session_start();
+
 		if (isset($_SESSION['ACCELO_TOKEN'])) {
 			unset($_SESSION['ACCELO_TOKEN']);
 		}
@@ -47,7 +50,8 @@ class AccelloConnect extends Model
 	} //resetToken
 
 	public static function status(){
-		session_start();
+		if (!session_id()) session_start();
+
 		echo '<pre>';
 		if (isset($_SESSION['ACCELO_TOKEN'])) {
 			print_r($_SESSION['ACCELO_TOKEN']);
@@ -144,6 +148,21 @@ class AccelloConnect extends Model
        return $result;
 	}//curlAccelo
 
+	public static function getResult($params){
+
+		$result = self::curlAccelo($params);
+		$data = [];
+		if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+				$data = $result['response'];
+		} else {
+			if(self::$return_error) {
+				$data = $result;
+			}
+		}
+
+		return $data;
+	}//getResult
+
 	public static function getStaff(){
 
 		$post = [];
@@ -156,43 +175,7 @@ class AccelloConnect extends Model
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::curlAccelo($params);
-
-	} //getStaff
-
-	public static function getStaffV1(){
-
-      $curl = curl_init();
-
-		$post = [];
-		$post["_limit"] 	= 50;
-		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
-		$post_url = http_build_query($post);
-
-		  curl_setopt_array($curl, array(
-		    CURLOPT_URL => "https://truudigital.api.accelo.com/api/v0/staff",
-		    CURLOPT_RETURNTRANSFER => true,
-		    CURLOPT_ENCODING => "",
-		    CURLOPT_MAXREDIRS => 10,
-		    CURLOPT_TIMEOUT => 0,
-		    CURLOPT_FOLLOWLOCATION => true,
-		    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-		    CURLOPT_CUSTOMREQUEST => "GET",
-			  CURLOPT_POSTFIELDS => $post_url, #"_fields=firstname%2C%20surname%2Cmobile%2Cemail%2C%20position%2Cstanding%2Cusername&_limit=50",
-		    CURLOPT_HTTPHEADER => array(
-		      "Content-Type: application/x-www-form-urlencoded",
-		      "Authorization: Bearer $access_token"
-		    ),
-		  ));
-
-      $response = curl_exec($curl);
-
-      curl_close($curl);
-
-      $result = (json_decode($response, true));
-      
-      return $result;
-      dd($result);
+		return self::getResult($params);
 
 	} //getStaff
 
@@ -208,7 +191,7 @@ class AccelloConnect extends Model
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::curlAccelo($params);
+      	return self::getResult($params);
 
 	} //getCompanies
 
@@ -224,7 +207,7 @@ class AccelloConnect extends Model
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::curlAccelo($params);
+      	return self::getResult($params);
 
 	} //getProjects
 
@@ -240,7 +223,7 @@ class AccelloConnect extends Model
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::curlAccelo($params);
+      	return self::getResult($params);
 
 	} //getTasks
 
@@ -256,7 +239,7 @@ class AccelloConnect extends Model
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::curlAccelo($params);
+      	return self::getResult($params);
 
 	} //getActivities
 

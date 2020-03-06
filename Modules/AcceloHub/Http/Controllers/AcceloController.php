@@ -25,70 +25,35 @@ class AcceloController extends Controller
 
       $result  = AccelloConnect::getStaff();
 
-      $data = [];
-      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
-        $data = $result['response'];
-      } else {
-        $data = $result;
-      }
-
-      return response()->json($data);
+      return response()->json($result);
     } //getAcceloMembers
 
     public function getAcceloCompanies(){
 
       $result  = AccelloConnect::getCompanies();
 
-      $data = [];
-      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
-        $data = $result['response'];
-      } else {
-        $data = $result;
-      }
-
-      return response()->json($data);
+      return response()->json($result);
     } //getAcceloCompanies
 
     public function getProjects(){
 
       $result  = AccelloConnect::getProjects();
 
-      $data = [];
-      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
-        $data = $result['response'];
-      } else {
-        $data = $result;
-      }
-
-      return response()->json($data);
+      return response()->json($result);
     } //getAcceloJobs
 
     public function getAcceloTasks(){
 
       $result  = AccelloConnect::getTasks();
 
-      $data = [];
-      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
-        $data = $result['response'];
-      } else {
-        $data = $result;
-      }
-
-      return response()->json($data);
+      return response()->json($result);
     } //getAcceloTasks
 
     public function getAcceloActivities(){
 
       $result  = AccelloConnect::getActivities();
 
-      $data = [];
-      if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
-        $data = $result['response'];
-      } else {
-        $data = $result;
-      }
-
-      return response()->json($data);
+      return response()->json($result);
     } //getAcceloActivities
 
     public function resetToken(){

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 
+use Modules\AcceloHub\Entities\HubstaffConnect;
+
 class HubstaffController extends Controller
 {
 
@@ -14,13 +16,14 @@ class HubstaffController extends Controller
     private $serviceRedirectURL     = 'http://localhost:8000/hubstaff/oauth';
     private $serviceConnectURL      = 'http://localhost:8000/hubstaff/connect';
     // This is the endpoint our server will request an access token from
-    private $tokenURL = 'https://account.hubstaff.com/access_tokens';
+    private $tokenURL   = 'https://account.hubstaff.com/access_tokens';
     // This is the hubstaff base URL we can use to make authenticated API requests
     private $apiURLBase = 'https://api.hubstaff.com/v2/';
+    private $organization_id = 239610;
 
     public function __construct()
     {
-        session_start();
+        if (!session_id()) session_start();
     }
 
     /**
@@ -92,6 +95,66 @@ class HubstaffController extends Controller
         //
     }
 
+    function getOrganizationMembers(){
+
+        $data = HubstaffConnect::getOrganizationMembers();
+
+        return response()->json($data);
+    } //getOrganizationMembers
+
+    function getClients(){
+
+        $result = HubstaffConnect::getClients();
+
+        return response()->json($data);
+    } //getClients
+
+    function getProjects(){
+
+        $result = HubstaffConnect::getProjects();
+
+        return response()->json($data);
+    } //getProjects
+
+    function getTasks(){
+
+        $result = HubstaffConnect::getTasks();
+
+        return response()->json($data);
+    } //getTasks
+
+    function getActivities(){
+
+        $result = HubstaffConnect::getActivities();
+
+        return response()->json($data);
+    } //getActivities
+
+
+    /*DEVELOPET USE*/
+    /*Refresh token HUBSTAFF*/
+    public function refreshToken(){
+        $code   = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
+
+        // Exchange the auth code for an access token
+        $token = $this->apiRequest($this->tokenURL, array(
+          'grant_type'    => 'refresh_token',
+          'refresh_token' => $code
+        ));
+
+        if (isset($token['access_token'])) {
+            $_SESSION['access_token'] = $token['access_token'];
+
+            header('Location: ' . $this->serviceConnectURL);
+            die();
+        }  else if (isset($token['error'])) {
+            $_SESSION['token_details'] = $token;
+            header('Location: ' . $this->serviceConnectURL . '?error=invalid_grant');
+        }
+
+        dd($request->code);
+    } //refreshToken
+
     /*connect to HUBSTAFF*/
     public function oauth(Request $request){
         $code   = $request->code;
@@ -135,7 +198,7 @@ class HubstaffController extends Controller
 
         dd($request->code);
     } //oauth
-
+    
     public function connect() {
         // Fill these out with the values you got from hubstaff
         $serviceClientID        = $this->serviceClientID;
@@ -187,7 +250,7 @@ class HubstaffController extends Controller
           }
           die();
         }
-    }
+    }//connect
 
     // This helper function will make API requests to GitHub, setting
     // the appropriate headers GitHub expects, and decoding the JSON response
@@ -206,6 +269,9 @@ class HubstaffController extends Controller
         if(isset($post['grant_type']) && $post['grant_type'] == 'authorization_code' ){
             $client_credentials = base64_encode($this->serviceClientID.":".$this->serviceClientSecret);
             $headers[] = 'Authorization: Basic ' . $client_credentials;
+        } else if(isset($post['grant_type']) && $post['grant_type'] == 'refresh_token' ){
+            $client_credentials = base64_encode($post['refresh_token']);
+            $headers[] = 'Authorization: Basic ' . $client_credentials;
         } else if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
@@ -214,9 +280,11 @@ class HubstaffController extends Controller
 
       $response = curl_exec($ch);
       return json_decode($response, true);
-    }
+    } //apiRequest
 
+    /*DEVELOPET USE*/
     public function developer(){
 
     }
+
 }
