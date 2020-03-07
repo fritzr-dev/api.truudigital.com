@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Session;
 use Request;
 
-class AccelloConnect extends Model
+class AcceloConnect extends Model
 {
     //protected $fillable = [];
     static $client_ID 		= '1177d277ef@truudigital.accelo.com';
@@ -159,7 +159,7 @@ class AccelloConnect extends Model
 				$data = $result;
 			}
 		}
-
+		#dd(count($data));
 		return $data;
 	}//getResult
 

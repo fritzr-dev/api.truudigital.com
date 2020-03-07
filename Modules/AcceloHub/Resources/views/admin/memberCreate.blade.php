@@ -48,10 +48,10 @@
                 <div class="row">
                   <div class="col-sm-6 col-xs-12">
                     <label>Accelo Members</label>
-                    <select name="accello_id" class="input-lg form-control">
+                    <select name="accelo_id" class="input-lg form-control">
                       <option value="">Accelo Members</option>
                       @foreach($members_a as $member)
-                      <option value="{{$member->id}}" {{ old('accello_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->firstname}} {{$member->surname}} [{{$member->email}}]</option>
+                      <option value="{{$member->id}}" {{ old('accelo_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->firstname}} {{$member->surname}} [{{$member->email}}]</option>
                       @endforeach
                     </select>
                   </div>

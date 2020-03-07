@@ -8,7 +8,7 @@ use Illuminate\Routing\Controller;
 use DB, Route;
 
 use Modules\AcceloHub\Entities\AcceloMembers;
-use Modules\AcceloHub\Entities\AccelloConnect;
+use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
 
 class AcceloHubController extends Controller
@@ -163,7 +163,7 @@ class AcceloHubController extends Controller
       if(isset($_SESSION['ACCELO_MEMBERS']) ){
         $members_a = $_SESSION['ACCELO_MEMBERS'];
       } else {
-        $members_a = AccelloConnect::getStaff();
+        $members_a = AcceloConnect::getStaff();
         $_SESSION['ACCELO_MEMBERS'] = $members_a;
       }
 
@@ -195,7 +195,7 @@ class AcceloHubController extends Controller
 
     public function memberCreate()
     {
-      $accelo_connection    = false;#AccelloConnect::getToken();
+      $accelo_connection    = false;#AcceloConnect::getToken();
       $hubstaff_connection  = false;
 
       $members = $this->getAcceloHubMembers();
@@ -214,7 +214,7 @@ class AcceloHubController extends Controller
         #$request->get('meta')
         $post = $request->all();
 
-        $member = AcceloMembers::where('accelo_member_id', $post['accello_id'])->get();
+        $member = AcceloMembers::where('accelo_member_id', $post['accelo_id'])->get();
 
         if($member->isNotEmpty()) {
             return redirect('admin/accelohub/member/create')
@@ -227,7 +227,7 @@ class AcceloHubController extends Controller
 
         $accelo_data = ''; $hubstaff_data = '';
         foreach ($members_a as $key => $member) {
-          if($post['accello_id'] == $member['id']) {
+          if($post['accelo_id'] == $member['id']) {
             $accelo_data    = json_encode($member);
             break;
           }
@@ -240,7 +240,7 @@ class AcceloHubController extends Controller
         }
 
         $data = [
-                'accelo_member_id'      => $post['accello_id'],
+                'accelo_member_id'      => $post['accelo_id'],
                 'hubstaff_member_id'    => $post['hubstaff_id'],
                 'accelo_data'           => $accelo_data,
                 'hubstaff_data'         => $hubstaff_data,
@@ -274,7 +274,7 @@ class AcceloHubController extends Controller
         return redirect()->to('admin/accelohub/members')->withErrors(['msg','Something went wrong.']);
       }
 
-      $accelo_connection    = false;#AccelloConnect::getToken();
+      $accelo_connection    = false;#AcceloConnect::getToken();
       $hubstaff_connection  = false;
 
       $members = $this->getAcceloHubMembers();
@@ -303,7 +303,7 @@ class AcceloHubController extends Controller
         $hubstaff_data  = json_encode($data);
 
         $data = [
-                'accelo_member_id'      => $post['accello_id'],
+                'accelo_member_id'      => $post['accelo_id'],
                 'hubstaff_member_id'    => $post['hubstaff_id'],
                 'accelo_data'           => $accelo_data,
                 'hubstaff_data'         => $hubstaff_data];

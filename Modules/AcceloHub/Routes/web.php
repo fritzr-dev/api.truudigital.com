@@ -79,7 +79,8 @@ Route::prefix('accelotohub')->group(function() {
 	/*Route::get('/members', 'AcceloController@getAcceloMembers');*/
 	/*Route::get('/companies', 'AcceloController@getAcceloCompanies');*/
 	
-	Route::get('/projects', 'AcceloController@getProjects');
+	Route::get('/projects', 'AcceloController@postHubstaffProjects');
+	
 	Route::get('/tasks', 'AcceloController@getAcceloTasks');
 	Route::get('/activities', 'AcceloController@getAcceloActivities');
 	Route::get('/reset', 'AcceloController@resetToken');

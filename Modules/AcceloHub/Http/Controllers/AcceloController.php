@@ -7,8 +7,9 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use DB, Route;
 
+use Modules\AcceloHub\Entities\AcceloProjects;
 use Modules\AcceloHub\Entities\AcceloMembers;
-use Modules\AcceloHub\Entities\AccelloConnect;
+use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
 
 class AcceloController extends Controller
@@ -24,73 +25,110 @@ class AcceloController extends Controller
 
     public function getAcceloMembers(){
 
-      $result  = AccelloConnect::getStaff();
+      $result  = AcceloConnect::getStaff();
 
       return response()->json($result);
     } //getAcceloMembers
 
     public function getAcceloCompanies(){
 
-      $result  = AccelloConnect::getCompanies();
+      $result  = AcceloConnect::getCompanies();
 
       return response()->json($result);
     } //getAcceloCompanies
 
+
     public function getProjects(){
 
-      $result  = AccelloConnect::getProjects();
+      $result  = AcceloConnect::getProjects();
+
+      return response()->json($result);
+    } //getAcceloCompanies
+
+    public function postHubstaffProjects(){
+      $error = []; $success = [];
+
+      $result  = AcceloConnect::getProjects();
 
       $projects = $result;
-      foreach ($projects as $key => $project) {
-        dd($project);
+      $ch = curl_init();
+      HubstaffConnect::setCurl($ch);
+      foreach ($projects as $key => $accelo) {
+        #dd($accelo);
         $post = array(
-                "name"=> $project['title'], 
-                "description"=> "string"
+                "name"=> $accelo['title'], 
+                "description"=> "Accelo Project ID:".$accelo['id']
                 //"client_id"=> 0
               );
-/*"members"=> [ \ 
- { \ 
-   "user_id"=> 0, \ 
-   "role"=> "string" \ 
- } \ 
-], \ 
-"budget"=> { \ 
- "type"=> "cost", \ 
- "rate"=> "bill_rate", \ 
- "cost"=> 0, \ 
- "hours"=> 0, \ 
- "start_date"=> "2020-03-06", \ 
- "recurrence"=> "monthly", \ 
- "alerts"=> { \ 
-   "near_limit"=> 0 \ 
- } \ 
-} \*/         
-        HubstaffConnect::postProject($post);
+        $hubstaff = HubstaffConnect::postProject($post);
+        /*"error" => "invalid_token"
+        "error_description" => "The access token provided is expired, revoked, malformed or invalid for other reasons."*/
+
+        $project = [];
+        if (isset($hubstaff['project'])) {
+          $hubstaff = $hubstaff['project'];
+          $accelo_project_id   = $accelo['id'];
+          $hubstaff_project_id = $hubstaff['id'];
+          $acceloProj_data     = json_encode($accelo);
+          $hubstaffProj_data   = json_encode($hubstaff);
+      
+          $project = AcceloProjects::create([
+            'accelo_project_id'   => $accelo_project_id,
+            'hubstaff_project_id' => $hubstaff_project_id,
+            'acceloProj_data'     => $acceloProj_data,
+            'hubstaffProj_data'   => $hubstaffProj_data
+          ]);
+          $success[] = $accelo;
+        } else {
+          $error[] = $accelo;
+        }
+        /*saved to DB*/
+        /*saved to DB END*/
+        /*"members"=> [ \ 
+         { \ 
+           "user_id"=> 0, \ 
+           "role"=> "string" \ 
+         } \ 
+        ], \ 
+        "budget"=> { \ 
+         "type"=> "cost", \ 
+         "rate"=> "bill_rate", \ 
+         "cost"=> 0, \ 
+         "hours"=> 0, \ 
+         "start_date"=> "2020-03-06", \ 
+         "recurrence"=> "monthly", \ 
+         "alerts"=> { \ 
+           "near_limit"=> 0 \ 
+         } \ 
+        } \*/         
       }
-          
+      curl_close($ch);
+      dd($projects, $success, $error);
+      #report to admin
+      #dd($error);
       #return response()->json($result);
-    } //getAcceloJobs
+    } //postHubstaffProjects
 
     public function getAcceloTasks(){
 
-      $result  = AccelloConnect::getTasks();
+      $result  = AcceloConnect::getTasks();
 
       return response()->json($result);
     } //getAcceloTasks
 
     public function getAcceloActivities(){
 
-      $result  = AccelloConnect::getActivities();
+      $result  = AcceloConnect::getActivities();
 
       return response()->json($result);
     } //getAcceloActivities
 
     public function resetToken(){
-      echo $result  = AccelloConnect::resetToken();
+      echo $result  = AcceloConnect::resetToken();
     } //resetToken
 
     public function status(){
-      AccelloConnect::status();
+      AcceloConnect::status();
     }
 
     public function developer(){
