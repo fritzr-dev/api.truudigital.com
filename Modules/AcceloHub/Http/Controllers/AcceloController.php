@@ -71,13 +71,21 @@ class AcceloController extends Controller
           $hubstaff_project_id = $hubstaff['id'];
           $acceloProj_data     = json_encode($accelo);
           $hubstaffProj_data   = json_encode($hubstaff);
+
+            $entry = AcceloProjects::where('accelo_project_id', $accelo_project_id)->where('hubstaff_project_id', $hubstaff_project_id)->get();
+            if($entry->isEmpty()){
+              $project = AcceloProjects::create([
+                'accelo_project_id'   => $accelo_project_id,
+                'hubstaff_project_id' => $hubstaff_project_id,
+                'acceloProj_data'     => $acceloProj_data,
+                'hubstaffProj_data'   => $hubstaffProj_data
+              ]);
+            } else {
+              $entry->acceloProj_data     = $acceloProj_data;
+              $entry->hubstaffProj_data   = $hubstaffProj_data;
+              $entry->save();
+            }
       
-          $project = AcceloProjects::create([
-            'accelo_project_id'   => $accelo_project_id,
-            'hubstaff_project_id' => $hubstaff_project_id,
-            'acceloProj_data'     => $acceloProj_data,
-            'hubstaffProj_data'   => $hubstaffProj_data
-          ]);
           $success[] = $accelo;
         } else {
           $error[] = $accelo;
