@@ -17,6 +17,8 @@ class CreateAcceloActivityTable extends Migration
             $table->bigIncrements('id');
             $table->string('accelo_activity_id');
             $table->string('hubstaff_activity_id');
+            $table->longText('acceloActivity_data')->nullable();
+            $table->longText('hubstaffActivity_data')->nullable();             
             $table->timestamps();
         });
     }

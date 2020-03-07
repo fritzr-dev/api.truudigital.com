@@ -183,7 +183,8 @@ class AccelloConnect extends Model
 
 		$post = [];
 		$post["_limit"] 	= 50;
-		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
+		$post["_fields"] 	= "_ALL";
+		$post["_filters"] 	= "standing(active)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
@@ -199,7 +200,8 @@ class AccelloConnect extends Model
 
 		$post = [];
 		$post["_limit"] 	= 50;
-		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
+		$post["_fields"] 	= "_ALL";
+		$post["_filters"] 	= "standing(active)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();

@@ -17,6 +17,8 @@ class CreateAcceloProjectsTable extends Migration
             $table->bigIncrements('id');
             $table->string('accelo_project_id');
             $table->string('hubstaff_project_id');
+            $table->longText('acceloProj_data')->nullable();
+            $table->longText('hubstaffProj_data')->nullable();
             $table->timestamps();
         });
     }

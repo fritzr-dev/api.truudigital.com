@@ -16,7 +16,6 @@ Route::group([
   'prefix' => 'admin', 
   //'namespace' => 'Modules\AcelloHub\Http\Controllers'
 ], function() {
-
 	Route::prefix('accelohub')->group(function() {
 	    Route::get('/', 'AcceloHubController@index');
 	    Route::get('/members', 'AcceloHubController@members');
@@ -55,7 +54,6 @@ Route::prefix('accelo')->group(function() {
 	Route::get('/developer', 'AcceloController@developer');
 });
 
-
 Route::prefix('hubstaff')->group(function() {
 	Route::get('/', 'HubstaffController@index');
 	
@@ -72,4 +70,20 @@ Route::prefix('hubstaff')->group(function() {
 	
 	Route::get('/status', 'HubstaffController@status');
 	Route::get('/developer', 'HubstaffController@developer');
+});
+
+
+Route::prefix('accelotohub')->group(function() {
+	Route::get('/', 'AcceloController@index');
+	
+	/*Route::get('/members', 'AcceloController@getAcceloMembers');*/
+	/*Route::get('/companies', 'AcceloController@getAcceloCompanies');*/
+	
+	Route::get('/projects', 'AcceloController@getProjects');
+	Route::get('/tasks', 'AcceloController@getAcceloTasks');
+	Route::get('/activities', 'AcceloController@getAcceloActivities');
+	Route::get('/reset', 'AcceloController@resetToken');
+
+	Route::get('/status', 'AcceloController@status');
+	Route::get('/developer', 'AcceloController@developer');
 });

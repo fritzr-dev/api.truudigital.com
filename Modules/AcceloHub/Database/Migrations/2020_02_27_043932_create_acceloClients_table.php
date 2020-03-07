@@ -17,6 +17,8 @@ class CreateAcceloClientsTable extends Migration
             $table->bigIncrements('id');
             $table->string('accelo_client_id');
             $table->string('hubstaff_client_id');
+            $table->longText('acceloClient_data')->nullable();
+            $table->longText('hubstaffClient_data')->nullable();            
             $table->timestamps();
         });
     }

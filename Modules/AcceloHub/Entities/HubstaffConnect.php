@@ -18,6 +18,8 @@ class HubstaffConnect extends Model
     static $return_error            = false;
     static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
 
+    static $user_agent = 'TruuDigital';
+
     public function __construct()
     {
         if (!session_id()) session_start();
@@ -32,7 +34,7 @@ class HubstaffConnect extends Model
 
       $headers = [
         'Accept: application/json',
-        'User-Agent: TruuDigital'
+        'User-Agent: '.self::$user_agent
       ];
 
         if(isset($post['grant_type']) && $post['grant_type'] == 'authorization_code' ){
@@ -49,7 +51,29 @@ class HubstaffConnect extends Model
 
       $response = curl_exec($ch);
       return json_decode($response, true);
-    }
+    } //apiRequest
+
+    public static function apiPost($url, $post=FALSE, $headers=array()) {
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+      if($post)
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+
+      $headers = [
+        'Accept: application/json',
+        'User-Agent: '.self::$user_agent
+      ];
+
+        if(isset($_SESSION['access_token'])) {
+            $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
+        }
+
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+      $response = curl_exec($ch);
+      return json_decode($response, true);
+    } //apiRequest
 
     /*Refresh token HUBSTAFF*/
     public static function refreshToken(){
@@ -60,7 +84,7 @@ class HubstaffConnect extends Model
           'grant_type'    => 'refresh_token',
           'refresh_token' => $code
         ));
-        $access_token; = '';
+        $access_token = '';
         if (isset($token['access_token'])) {
             $_SESSION['access_token'] = $token['access_token'];
             $access_token = $token['access_token'];
@@ -129,6 +153,15 @@ class HubstaffConnect extends Model
 
         return $result;
     } //getProjects
+
+    public static function postProject($post){
+        $client_id = 97492;
+        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/projects";
+        #dd($post);
+        $result = self::apiPost($url, $post);
+        dd($result);
+        return $result;
+    } //postProject
 
     function getTasks(){
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/tasks";
