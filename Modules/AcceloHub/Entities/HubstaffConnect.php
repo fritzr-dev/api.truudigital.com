@@ -201,14 +201,14 @@ class HubstaffConnect extends Model
         return $result;
     } //postProject
 
-    function getTasks(){
+    public static function getTasks(){
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/tasks";
         $result = self::getResults($url, 'tasks');
 
         return $result;
     } //getTasks
 
-    function getActivities(){
+    public static function getActivities(){
         $time_slot = array();
         $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
         $time_slot['stop']  = date('Y-m-d\TH:i:sO');

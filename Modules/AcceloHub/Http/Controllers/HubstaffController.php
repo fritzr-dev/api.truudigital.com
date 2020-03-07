@@ -120,14 +120,14 @@ class HubstaffController extends Controller
 
         $result = HubstaffConnect::getTasks();
 
-        return response()->json($data);
+        return response()->json($result);
     } //getTasks
 
     function getActivities(){
 
         $result = HubstaffConnect::getActivities();
 
-        return response()->json($data);
+        return response()->json($result);
     } //getActivities
 
 

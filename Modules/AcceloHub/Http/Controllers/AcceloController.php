@@ -124,6 +124,13 @@ class AcceloController extends Controller
       return response()->json($result);
     } //getAcceloTasks
 
+    public function postAcceloTasks(){
+
+      $result  = AcceloConnect::getTasks();
+      dd(count($result));
+      return response()->json($result);
+    } //postAcceloTasks
+
     public function getAcceloActivities(){
 
       $result  = AcceloConnect::getActivities();
