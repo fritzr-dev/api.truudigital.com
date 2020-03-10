@@ -33,6 +33,7 @@ Route::group([
 	    ]);
 
 	    Route::post('/member/update', 'AcceloHubController@memberUpdate');
+	    Route::get('/projects', 'AcceloHubController@projects');
 
 	    Route::get('/organization', 'AcceloHubController@organization');
 
@@ -75,14 +76,16 @@ Route::prefix('hubstaff')->group(function() {
 
 Route::prefix('accelotohub')->group(function() {
 	Route::get('/', 'AcceloController@index');
-	
+
+	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects');
+	Route::get('/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
+	Route::get('/activities', 'HubstaffController@postHubstaff2AcceloActivities');
+
+
 	/*Route::get('/members', 'AcceloController@getAcceloMembers');*/
 	/*Route::get('/companies', 'AcceloController@getAcceloCompanies');*/
-	
-	Route::get('/projects', 'AcceloController@postHubstaffProjects');
 
-	Route::get('/tasks', 'AcceloController@postAcceloTasks');
-	Route::get('/activities', 'AcceloController@getAcceloActivities');
+
 	Route::get('/reset', 'AcceloController@resetToken');
 
 	Route::get('/status', 'AcceloController@status');

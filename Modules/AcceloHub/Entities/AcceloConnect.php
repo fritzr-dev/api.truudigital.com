@@ -14,6 +14,7 @@ class AcceloConnect extends Model
     static $client_token = [];
     static $access_token = '';
     static $return_error = false;
+    static $apiCurl      = false;
 
     public function __construct()
     {
@@ -163,6 +164,50 @@ class AcceloConnect extends Model
 		return $data;
 	}//getResult
 
+	public static function MultiplecurlAccelo($params = array()){
+
+		$access_token = self::getToken();
+
+		$post_url 	= $params['url'];
+		$post_type 	= $params['type'];
+		$post_data 	= $params['data'];
+
+      	$curl = self::$apiCurl;
+
+		  curl_setopt_array($curl, array(
+		    CURLOPT_URL => $post_url,
+		    CURLOPT_RETURNTRANSFER => true,
+		    CURLOPT_ENCODING => "",
+		    CURLOPT_MAXREDIRS => 10,
+		    CURLOPT_TIMEOUT => 0,
+		    CURLOPT_FOLLOWLOCATION => true,
+		    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		    CURLOPT_CUSTOMREQUEST => $post_type,
+			CURLOPT_POSTFIELDS => $post_data,
+		    CURLOPT_HTTPHEADER => array(
+		      "Content-Type: application/x-www-form-urlencoded",
+		      "Authorization: Bearer $access_token"
+		    ),
+		  ));
+
+      $response = curl_exec($curl);
+
+      $result = (json_decode($response, true));
+
+		$data = [];
+		if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
+				$data = $result['response'];
+		} else {
+			if(self::$return_error) {
+				$data = $result;
+			}
+		}
+		return $data;
+	}//curlAccelo
+    public static function setCurl($ch){
+        self::$apiCurl = $ch;
+    }//setCurl
+
 	public static function getStaff(){
 
 		$post = [];
@@ -214,6 +259,71 @@ class AcceloConnect extends Model
 	} //getProjects
 
 	public static function getTasks(){
+		$limit = 50;
+
+		$post = [];
+		$post["_limit"] 	= $limit;
+		$post["_fields"] 	= "_ALL";
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+      	return self::getResult($params);
+
+	} //getLatestTasks
+
+	public static function getAllTasks(){
+		$limit = 50;
+
+		$post = [];
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks/count";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+      	$count = self::getResult($params);
+      	$count = $count['count'];
+
+      	$tasks = array();
+      	if($count > $limit) {
+      		$pages = ceil($count / $limit);
+	      	
+	      	$ch = curl_init();
+	      	self::setCurl($ch);
+
+	      	for ($p=1; $p <= $pages; $p++) {
+				$post = [];
+				$post["_limit"] 	= $limit;
+				//$post["_page"] 		= $p;
+				$post["_fields"] 	= "_ALL";
+				$post_data = http_build_query($post);
+
+				$params 		= array();
+				$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks?_page=$p";
+				$params['type'] = "GET";
+				$params['data']	= $post_data;
+
+				$tasks_page = self::MultiplecurlAccelo($params);
+
+				$tasks = array_merge($tasks, $tasks_page);
+				#echo "PAGE: $p ".count($tasks_page)."<br />";
+	      	}
+      		curl_close($ch);
+      	}
+
+      	#echo count($tasks);
+		#dd($tasks);
+
+      	return $tasks;
+
+	} //getAllTasks
+
+	public static function getProjectTasks($project_id){
 
 		$post = [];
 		$post["_limit"] 	= 50;
@@ -227,7 +337,7 @@ class AcceloConnect extends Model
 
       	return self::getResult($params);
 
-	} //getTasks
+	} //getTasks	
 
 	public static function getActivities(){
 

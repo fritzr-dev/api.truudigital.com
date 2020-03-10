@@ -10,6 +10,7 @@ use DB, Route;
 use Modules\AcceloHub\Entities\AcceloMembers;
 use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
+use Modules\AcceloHub\Entities\AcceloProjects;
 
 class AcceloHubController extends Controller
 {
@@ -22,17 +23,17 @@ class AcceloHubController extends Controller
           $html = '<li class="treeview '.(\Request::is('admin/accelohub') || \Request::is('admin/accelohub/*')  || \Request::is('admin/accelohub/*') ? ' active' : '') .'"><a href="#"><i class="fa fa-book"></i> <span>Manage Accelo</span><span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
           </a>
             <ul class="treeview-menu">
-              <li'. (\Request::is('admin/accelohub') || \Request::is('admin/accelohub/*') ? ' class="active"' : '') .'>
+              <li'. (\Request::is('admin/accelohub/members') ? ' class="active"' : '') .'>
                 <a href="'.url('admin/accelohub/members').'"><i class="fa fa-circle-o"></i> View Members</a></li>
               '. ( \Helper::hasAccess('module.admin.accelohub.create') ? '<li'. (\Request::is('admin/accelohub/member/create') ? ' class="active"' : '') .'>
                 <a href="'.url('admin/accelohub/member/create').'"><i class="fa fa-circle-o"></i> New Member</a>
                 <hr />
-                <a href="'.url('admin/accelohub/organization').'"><i class="fa fa-circle-o"></i> Manage Organizations</a>
-                <a href="'.url('admin/accelohub/projects').'"><i class="fa fa-circle-o"></i> Manage Projects</a>
-                <a href="'.url('admin/accelohub/task').'"><i class="fa fa-circle-o"></i> Manage Task</a>
-                <a href="'.url('admin/accelohub/activities').'"><i class="fa fa-circle-o"></i> Members Activities</a>
-                <a href="'.url('admin/accelohub/logs').'"><i class="fa fa-circle-o"></i> Sync Logs</a>
-                </li>' : '' ) .'
+              </li>
+              <li'. (\Request::is('admin/accelohub/organization') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/organization').'"><i class="fa fa-circle-o"></i> Manage Organizations</a></li>
+              <li'. (\Request::is('admin/accelohub/projects') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/projects').'"><i class="fa fa-circle-o"></i> Manage Projects</a></li>
+              <li'. (\Request::is('admin/accelohub/task') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/task').'"><i class="fa fa-circle-o"></i> Manage Task</a></li>
+              <li'. (\Request::is('admin/accelohub/activities') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/activities').'"><i class="fa fa-circle-o"></i> Members Activities</a></li>
+              <li'. (\Request::is('admin/accelohub/logs') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/logs').'"><i class="fa fa-circle-o"></i> Sync Logs</a></li>' : '' ) .'
             </ul>
           </li>';
         }
@@ -379,4 +380,50 @@ class AcceloHubController extends Controller
 
     } //organization 
 
+    public function projects(Request $request)
+    {
+        $limit  = $request->get('limit', env('LIMIT'));
+        $search = $request->get('s');
+        $sort   = $request->get('sort');
+        $by     = $request->get('by');
+
+        $records = AcceloProjects::orderByRaw("id ASC");
+
+        if($search) {
+            $records = $records->where(function($q) use($search){
+              $q->where( 'accelo_member_id', 'like', "%$search%" );
+              $q->orWhere('hubstaff_member_id', 'like', "%$search%" );
+              $q->orWhere('acceloProj_data', 'like', "%$search%" );
+              $q->orWhere('hubstaffProj_data', 'like', "%$search%" );
+            });
+        }
+        
+        $pagination = $records->paginate($limit);
+
+        $records = $records->get();
+        $records->map(function ($user) {
+            $accelo_data    = json_decode($user->acceloProj_data);
+            $hubstaff_data  = json_decode($user->hubstaffProj_data);
+            #dd($accelo_data, $hubstaff_data);
+
+            if (isset($accelo_data->title)) {
+                $user->accelo_name  = $accelo_data->title;
+                $user->date_created = $accelo_data->date_created;
+                $user->status       = $accelo_data->standing;
+            }
+            if (isset($hubstaff_data->name)) {
+                $user->hubstaff_name = $hubstaff_data->name;
+                $user->hubstaff_desc = $hubstaff_data->description;
+            }
+
+            return $user;
+        });
+
+
+        return view('accelohub::admin.projects',[
+                    'records' => $records,
+                    'pagination' => $pagination
+                    ]);
+
+    } //projects 
 }

@@ -36,7 +36,7 @@
       </a>
       <div class="navbar-custom-menu">
         <ul class="nav navbar-nav">
-          
+          <!--
           <li class="dropdown messages-menu">
             
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -131,14 +131,14 @@
               </li>
             </ul>
           </li>
-          
+          -->
           <li class="dropdown user user-menu">
           {!! Hooks::do('user_top_menu') !!}
           </li>
           
-          <li>
+          <!-- <li>
             <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
-          </li>
+          </li> -->
         </ul>
       </div>
     </nav>
@@ -187,10 +187,10 @@
   <footer class="main-footer">
     
     <div class="pull-right hidden-xs">
-      Powered by Laravel.
+      Powered by TruuDigital.
     </div>
     
-    <strong>Copyright &copy; 2018 <a href="{{ url('/') }}"> {{ env('SITE_NAME') }}</a>.</strong> All rights reserved.
+    <strong>Copyright &copy; {{ date('Y') }} <a href="{{ url('/') }}"> {{ env('SITE_NAME') }}</a>.</strong> All rights reserved.
   </footer>
 
   

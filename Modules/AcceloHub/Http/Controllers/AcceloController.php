@@ -45,7 +45,7 @@ class AcceloController extends Controller
       return response()->json($result);
     } //getAcceloCompanies
 
-    public function postHubstaffProjects(){
+    public function postAccelo2HubstaffProjects(){
       $error = []; $success = [];
 
       $result  = AcceloConnect::getProjects();
@@ -115,19 +115,26 @@ class AcceloController extends Controller
       #report to admin
       #dd($error);
       #return response()->json($result);
-    } //postHubstaffProjects
+    } //postAccelo2HubstaffProjects
 
     public function getAcceloTasks(){
 
-      $result  = AcceloConnect::getTasks();
+      $result  = AcceloConnect::getAllTasks();
 
       return response()->json($result);
     } //getAcceloTasks
 
-    public function postAcceloTasks(){
+    public function postAccelo2HubstaffProjectTasks(){
 
-      $result  = AcceloConnect::getTasks();
-      dd(count($result));
+      $records = AcceloProjects::get();#->limit(1);
+      foreach ($records as $key => $record) {
+        $accelo_project_id    = $record->accelo_project_id;
+        $hubstaff_project_id  = $record->hubstaff_project_id;
+        dd($record);
+      }
+
+      dd($records);
+      #$result  = AcceloConnect::getTasks();
       return response()->json($result);
     } //postAcceloTasks
 

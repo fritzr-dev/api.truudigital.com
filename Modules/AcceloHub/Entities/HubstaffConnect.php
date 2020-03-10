@@ -82,7 +82,7 @@ class HubstaffConnect extends Model
     }//setCurl
     public static function apiPostInitCurl($url, $post=FALSE, $headers=array()) {
       #$ch = curl_init($url);
-        $ch = self::$apiCurl;
+      $ch = self::$apiCurl;
       curl_setopt($ch, CURLOPT_URL, $url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
@@ -176,9 +176,9 @@ class HubstaffConnect extends Model
         return $result;
     } //getClients
 
-    function getProjects(){
+    public static function getProjects(){
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/projects";
-        $result = self::getResults($url, projects);
+        $result = self::getResults($url, 'projects');
 
         return $result;
     } //getProjects
@@ -214,7 +214,7 @@ class HubstaffConnect extends Model
         $time_slot['stop']  = date('Y-m-d\TH:i:sO');
 
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/activities?time_slot[start]=".date('Y-m-d\TH:i:sO', strtotime("-7 days"))."&time_slot[stop]=".date('Y-m-d\TH:i:sO');
-
+        #dd($url);
         $result = self::getResults($url, 'activities');
 
         return $result;
