@@ -39,11 +39,31 @@ class AcceloController extends Controller
 
 
     public function getProjects(){
-
       $result  = AcceloConnect::getProjects();
 
       return response()->json($result);
     } //getAcceloCompanies
+
+    public function getProject($id){
+
+      $result  = AcceloConnect::getProject($id);
+
+      return response()->json($result);
+    } //getAcceloCompanies        
+
+    public function getMilestones($id){
+
+      $result  = AcceloConnect::getProjectMilestones($id);
+
+      return response()->json($result);
+    } //getMilestones    
+
+    public function getTickets(){
+
+      $result  = AcceloConnect::getTickets();
+
+      return response()->json($result);
+    } //getTickets    
 
     public function postAccelo2HubstaffProjects(){
       $error = []; $success = [];
@@ -116,6 +136,90 @@ class AcceloController extends Controller
       #dd($error);
       #return response()->json($result);
     } //postAccelo2HubstaffProjects
+
+    public function postAccelo2HubstaffTickets(){
+      $error = []; $success = [];
+
+      $result  = AcceloConnect::getTickets();
+
+      $tickets = $result;
+      if($tickets){
+
+        $members = AcceloMembers::member_ids();
+        #$members = implode(',', $members);
+        $members = 530169;
+
+        $ch = curl_init();
+        HubstaffConnect::setCurl($ch);
+        $projectID = AcceloConnect::$project_ticket;
+        foreach ($tickets as $key => $accelo) {
+          #dd($accelo);
+          $post = array(
+                  "name"        => "T-".$accelo['id'].": ".$accelo['title'], 
+                  "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],
+                  "summary"     => $accelo['description'],
+                  "assignee_id" => $members
+                  //"client_id"=> 0
+                );
+          $hubstaff = HubstaffConnect::postTask($projectID, $post);
+          dd($hubstaff);
+          /*"error" => "invalid_token"
+          "error_description" => "The access token provided is expired, revoked, malformed or invalid for other reasons."*/
+
+          $project = [];
+          if (isset($hubstaff['project'])) {
+            $hubstaff = $hubstaff['project'];
+            $accelo_project_id   = $accelo['id'];
+            $hubstaff_project_id = $hubstaff['id'];
+            $acceloProj_data     = json_encode($accelo);
+            $hubstaffProj_data   = json_encode($hubstaff);
+
+              $entry = AcceloProjects::where('accelo_project_id', $accelo_project_id)->where('hubstaff_project_id', $hubstaff_project_id)->get();
+              if($entry->isEmpty()){
+                $project = AcceloProjects::create([
+                  'accelo_project_id'   => $accelo_project_id,
+                  'hubstaff_project_id' => $hubstaff_project_id,
+                  'acceloProj_data'     => $acceloProj_data,
+                  'hubstaffProj_data'   => $hubstaffProj_data
+                ]);
+              } else {
+                $entry->acceloProj_data     = $acceloProj_data;
+                $entry->hubstaffProj_data   = $hubstaffProj_data;
+                $entry->save();
+              }
+        
+            $success[] = $accelo;
+          } else {
+            $error[] = $accelo;
+          }
+          /*saved to DB*/
+          /*saved to DB END*/
+          /*"members"=> [ \ 
+           { \ 
+             "user_id"=> 0, \ 
+             "role"=> "string" \ 
+           } \ 
+          ], \ 
+          "budget"=> { \ 
+           "type"=> "cost", \ 
+           "rate"=> "bill_rate", \ 
+           "cost"=> 0, \ 
+           "hours"=> 0, \ 
+           "start_date"=> "2020-03-06", \ 
+           "recurrence"=> "monthly", \ 
+           "alerts"=> { \ 
+             "near_limit"=> 0 \ 
+           } \ 
+          } \*/         
+        }
+        curl_close($ch);
+        dd($projects, $success, $error);
+      }
+      #report to admin
+      #dd($error);
+      #return response()->json($result);
+    } //postAccelo2HubstaffTickets
+
 
     public function getAcceloTasks(){
 

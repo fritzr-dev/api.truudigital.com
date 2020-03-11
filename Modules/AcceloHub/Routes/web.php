@@ -47,6 +47,9 @@ Route::prefix('accelo')->group(function() {
 	Route::get('/members', 'AcceloController@getAcceloMembers');
 	Route::get('/companies', 'AcceloController@getAcceloCompanies');
 	Route::get('/projects', 'AcceloController@getProjects');
+	Route::get('/tickets', 'AcceloController@getTickets');
+	Route::get('/projects/{id}', 'AcceloController@getProject');
+	Route::get('/projects/{id}/milestones', 'AcceloController@getMilestones');
 	Route::get('/tasks', 'AcceloController@getAcceloTasks');
 	Route::get('/activities', 'AcceloController@getAcceloActivities');
 	Route::get('/reset', 'AcceloController@resetToken');
@@ -78,16 +81,9 @@ Route::prefix('accelotohub')->group(function() {
 	Route::get('/', 'AcceloController@index');
 
 	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects');
+	Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');
+
 	Route::get('/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
 	Route::get('/activities', 'HubstaffController@postHubstaff2AcceloActivities');
 
-
-	/*Route::get('/members', 'AcceloController@getAcceloMembers');*/
-	/*Route::get('/companies', 'AcceloController@getAcceloCompanies');*/
-
-
-	Route::get('/reset', 'AcceloController@resetToken');
-
-	Route::get('/status', 'AcceloController@status');
-	Route::get('/developer', 'AcceloController@developer');
 });

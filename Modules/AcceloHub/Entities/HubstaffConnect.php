@@ -201,6 +201,23 @@ class HubstaffConnect extends Model
         return $result;
     } //postProject
 
+    public static function postTask($project_id, $post){
+
+        $url = "https://api.hubstaff.com/v2/projects/$project_id/tasks";
+        #dd($post);
+        $result = self::apiPost($url, $post);
+        if (isset($result['error']) && $result['error'] == 'invalid_token') {
+            if (self::$retoken == 0) {
+                self::$retoken = 1;
+                self::refreshToken();
+                $result = self::apiPostInitCurl($url, $post);
+            } 
+        } else {
+            self::$retoken = 0;
+        }
+
+        return $result;
+    } //postProject
     public static function getTasks(){
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/tasks";
         $result = self::getResults($url, 'tasks');
