@@ -457,10 +457,10 @@ class AcceloHubController extends Controller
             if (isset($accelo_data->title)) {
                 $user->accelo_name  = $accelo_data->title;
                 $user->date_created = $accelo_data->date_created;
-                $user->status       = $accelo_data->standing;
             }
             if (isset($hubstaff_data->summary)) {
                 $user->hubstaff_name = $hubstaff_data->summary;
+                $user->status       = $accelo_data->standing;
             }
 
             return $user;

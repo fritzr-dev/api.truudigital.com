@@ -12,6 +12,7 @@ use Modules\AcceloHub\Entities\AcceloMembers;
 use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloTickets;
+use Modules\AcceloHub\Entities\AcceloTasks;
 
 class AcceloController extends Controller
 {
@@ -102,14 +103,15 @@ class AcceloController extends Controller
                 'hubstaffProj_data'   => $hubstaffProj_data
               ]);
             } else {
-              $entry->acceloProj_data     = $acceloProj_data;
-              $entry->hubstaffProj_data   = $hubstaffProj_data;
-              $entry->save();
+              $update_entry = AcceloProjects::find($entry->id);
+              $update_entry->acceloProj_data     = $acceloProj_data;
+              $update_entry->hubstaffProj_data   = $hubstaffProj_data;
+              $update_entry->update();
             }
       
           $success[] = $accelo;
         } else {
-          $error[] = $accelo;
+          $error[] = array('error' => 'Error in posting to hubstaff', 'post' => $post, 'api' => $hubstaff);
         }
         /*saved to DB*/
         /*saved to DB END*/
@@ -132,10 +134,10 @@ class AcceloController extends Controller
         } \*/         
       }
       curl_close($ch);
-      dd($projects, $success, $error);
+      #dd($projects, $success, $error);
       #report to admin
       #dd($error);
-      #return response()->json($result);
+      return response()->json(array('success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjects
 
     public function postAccelo2HubstaffTickets(){
@@ -154,7 +156,7 @@ class AcceloController extends Controller
           $members = AcceloMembers::get_HID_byAID($assignee);
 
           $post = array(
-                  "name"        => "T-".$accelo['id'].": ".$accelo['title'], 
+                  "name"        => "TICKET-".$accelo['id'].": ".$accelo['title'], 
                   "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],
                   "summary"     => "TICKET-".$accelo['id']." :: Title:".$accelo['title']."  Description:".$accelo['description'],
                   "assignee_id" => $members
@@ -203,7 +205,6 @@ class AcceloController extends Controller
       #return response()->json($result);
     } //postAccelo2HubstaffTickets
 
-
     public function getAcceloTasks(){
 
       $result  = AcceloConnect::getAllTasks();
@@ -211,13 +212,35 @@ class AcceloController extends Controller
       return response()->json($result);
     } //getAcceloTasks
 
-    public function postAccelo2HubstaffProjectTasks(){
+    public function postAccelo2HubstaffProjectMilestones(){
 
       $records = AcceloProjects::get();#->limit(1);
       foreach ($records as $key => $record) {
         $accelo_project_id    = $record->accelo_project_id;
         $hubstaff_project_id  = $record->hubstaff_project_id;
-        dd($record);
+
+        $accelo_project_id = 290;
+        $milestones  = AcceloConnect::getProjectMilestones($accelo_project_id);
+        $ch = curl_init();
+        HubstaffConnect::setCurl($ch);        
+        foreach ($milestones as $key => $accelo) {
+          dd($accelo);
+          $hubstaff = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONES');
+          dd($hubstaff);
+        }
+        curl_close($ch);
+
+              $ticket_task= AcceloTasks::create([
+                'accelo_ticket_id'   => $accelo_ticket_id,
+                'hubstaff_task_id' => $hubstaff_task_id,
+                'acceloTicket_data'     => $acceloTicket_data,
+                'hubstaffTask_data'   => $hubstaffTask_data
+              ]);
+        dd($accelo_project_id, $milestones);
+
+        #get Milestones then Tasks
+        #get Tasks
+        break;
       }
 
       dd($records);

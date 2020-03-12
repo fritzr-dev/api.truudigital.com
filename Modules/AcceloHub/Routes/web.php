@@ -87,6 +87,7 @@ Route::prefix('accelotohub')->group(function() {
 
 	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects');
 	Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');
+	Route::get('/projects/milestones', 'AcceloController@postAccelo2HubstaffProjectMilestones');
 
 	Route::get('/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
 	Route::get('/activities', 'HubstaffController@postHubstaff2AcceloActivities');

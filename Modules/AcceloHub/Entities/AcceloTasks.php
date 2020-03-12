@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AcceloTasks extends Model
 {
 	protected $table = 'acceloTasks';
-	protected $fillable = ['project_id','accelo_task_id','hubstaff_task_id']; 
+	protected $fillable = ['project_id','accelo_task_id','hubstaff_task_id','type']; 
 	
 	public function AcceloProjects()
     {
