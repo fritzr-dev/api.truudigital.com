@@ -48,7 +48,8 @@ class HubstaffConnect extends Model
         } else if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
-
+        
+      curl_setopt($ch, CURLOPT_TIMEOUT, 0);
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);

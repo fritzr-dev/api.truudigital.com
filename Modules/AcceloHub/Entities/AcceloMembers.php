@@ -17,6 +17,16 @@ class AcceloMembers extends Model
 	    }
 
 	    return $ids;
-	}
+	}//member_ids
+
+	public static function get_HID_byAID($id){
+	    $ids 		= '';
+	    $members 	= AcceloMembers::where('accelo_member_id', $id)->pluck('hubstaff_member_id')->toArray();
+
+	    if($members) {
+	    	$ids = implode(',', $members);
+	    }
+	    return $ids;
+	}//get_HID_byAIDwhere
 
 }

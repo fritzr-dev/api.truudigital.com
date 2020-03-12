@@ -11,6 +11,7 @@ use Modules\AcceloHub\Entities\AcceloProjects;
 use Modules\AcceloHub\Entities\AcceloMembers;
 use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
+use Modules\AcceloHub\Entities\AcceloTickets;
 
 class AcceloController extends Controller
 {
@@ -145,75 +146,57 @@ class AcceloController extends Controller
       $tickets = $result;
       if($tickets){
 
-        $members = AcceloMembers::member_ids();
-        #$members = implode(',', $members);
-        $members = 530169;
-
         $ch = curl_init();
         HubstaffConnect::setCurl($ch);
         $projectID = AcceloConnect::$project_ticket;
         foreach ($tickets as $key => $accelo) {
-          #dd($accelo);
+          $assignee = $accelo['assignee'];
+          $members = AcceloMembers::get_HID_byAID($assignee);
+
           $post = array(
                   "name"        => "T-".$accelo['id'].": ".$accelo['title'], 
                   "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],
-                  "summary"     => $accelo['description'],
+                  "summary"     => "TICKET-".$accelo['id']." :: Title:".$accelo['title']."  Description:".$accelo['description'],
                   "assignee_id" => $members
                   //"client_id"=> 0
                 );
           $hubstaff = HubstaffConnect::postTask($projectID, $post);
-          dd($hubstaff);
-          /*"error" => "invalid_token"
-          "error_description" => "The access token provided is expired, revoked, malformed or invalid for other reasons."*/
+          #dd($post, $accelo, $hubstaff);
 
-          $project = [];
-          if (isset($hubstaff['project'])) {
-            $hubstaff = $hubstaff['project'];
-            $accelo_project_id   = $accelo['id'];
-            $hubstaff_project_id = $hubstaff['id'];
-            $acceloProj_data     = json_encode($accelo);
-            $hubstaffProj_data   = json_encode($hubstaff);
-
-              $entry = AcceloProjects::where('accelo_project_id', $accelo_project_id)->where('hubstaff_project_id', $hubstaff_project_id)->get();
-              if($entry->isEmpty()){
-                $project = AcceloProjects::create([
-                  'accelo_project_id'   => $accelo_project_id,
-                  'hubstaff_project_id' => $hubstaff_project_id,
-                  'acceloProj_data'     => $acceloProj_data,
-                  'hubstaffProj_data'   => $hubstaffProj_data
+          /*saved to DB*/
+          $ticket_task= [];
+          if (isset($hubstaff['task'])) {
+            $hubstaff = $hubstaff['task'];
+            $accelo_ticket_id   = $accelo['id'];
+            $hubstaff_task_id = $hubstaff['id'];
+            $acceloTicket_data     = json_encode($accelo);
+            $hubstaffTask_data   = json_encode($hubstaff);
+              $entry = AcceloTickets::where('accelo_ticket_id', $accelo_ticket_id)->first();#->where('hubstaff_task_id', $hubstaff_task_id)
+              if(!$entry){
+                $ticket_task= AcceloTickets::create([
+                  'accelo_ticket_id'   => $accelo_ticket_id,
+                  'hubstaff_task_id' => $hubstaff_task_id,
+                  'acceloTicket_data'     => $acceloTicket_data,
+                  'hubstaffTask_data'   => $hubstaffTask_data
                 ]);
               } else {
-                $entry->acceloProj_data     = $acceloProj_data;
-                $entry->hubstaffProj_data   = $hubstaffProj_data;
-                $entry->save();
+                $update_entry = AcceloTickets::find($entry->id);
+                $update_entry->acceloTicket_data = $acceloTicket_data;
+                $update_entry->hubstaffTask_data = $hubstaffTask_data;
+                $update_entry->hubstaff_task_id  = $hubstaff_task_id;
+                $update_entry->update();
               }
-        
+
             $success[] = $accelo;
           } else {
-            $error[] = $accelo;
+            $error[] = array('error' => 'Error in posting to hubstaff', 'post' => $post, 'api' => $hubstaff);
           }
-          /*saved to DB*/
           /*saved to DB END*/
-          /*"members"=> [ \ 
-           { \ 
-             "user_id"=> 0, \ 
-             "role"=> "string" \ 
-           } \ 
-          ], \ 
-          "budget"=> { \ 
-           "type"=> "cost", \ 
-           "rate"=> "bill_rate", \ 
-           "cost"=> 0, \ 
-           "hours"=> 0, \ 
-           "start_date"=> "2020-03-06", \ 
-           "recurrence"=> "monthly", \ 
-           "alerts"=> { \ 
-             "near_limit"=> 0 \ 
-           } \ 
-          } \*/         
-        }
+
+        } // foreach
         curl_close($ch);
-        dd($projects, $success, $error);
+        //dd($ticket_task, $success, $error);
+        return response()->json(array('success' => $success, 'error' => $error ) );
       }
       #report to admin
       #dd($error);

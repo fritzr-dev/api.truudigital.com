@@ -51,7 +51,7 @@
                     <select name="accelo_id" class="input-lg form-control">
                       <option value="">Accelo Members</option>
                       @foreach($members_a as $member)
-                      <option value="{{$member->id}}" {{ old('accelo_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->firstname}} {{$member->surname}} [{{$member->email}}]</option>
+                      <option value="{{$member->id}}" {{ old('accelo_id') == $member->id ? 'selected="selected"' : '' }}> {{$member->id}} - {{$member->firstname}} {{$member->surname}} [{{$member->email}}]</option>
                       @endforeach
                     </select>
                   </div>
@@ -60,7 +60,7 @@
                     <select name="hubstaff_id" class="input-lg form-control">
                       <option value="0">Hubstaff Members</option>
                       @foreach($members_h as $member)
-                      <option value="{{$member->id}}" {{ old('hubstaff_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->name}} [{{$member->email}}]</option>
+                      <option value="{{$member->id}}" {{ old('hubstaff_id') == $member->id ? 'selected="selected"' : '' }}>{{$member->id}} - {{$member->name}} [{{$member->email}}]</option>
                       @endforeach
                     </select>
                   </div>
