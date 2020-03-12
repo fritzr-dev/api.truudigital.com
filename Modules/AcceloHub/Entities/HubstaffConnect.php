@@ -205,7 +205,9 @@ class HubstaffConnect extends Model
 
     public static function postTasks($project_id, $accelo, $type='task'){
 
-        $members = '';
+        echo $assignee = $accelo['manager'];
+        $members = AcceloMembers::get_HID_byAID($assignee);
+
         $post = array(
               "name"        => $type."-".$accelo['id'].": ".$accelo['title'], 
               "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],

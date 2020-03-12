@@ -224,7 +224,6 @@ class AcceloController extends Controller
         $ch = curl_init();
         HubstaffConnect::setCurl($ch);        
         foreach ($milestones as $key => $accelo) {
-          dd($accelo);
           $hubstaff = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONES');
           dd($hubstaff);
         }
