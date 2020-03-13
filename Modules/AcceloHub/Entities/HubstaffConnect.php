@@ -15,6 +15,7 @@ class HubstaffConnect extends Model
     // This is the hubstaff base URL we can use to make authenticated API requests
     public static $apiURLBase       = 'https://api.hubstaff.com/v2/';
     public static $organization_id  = 239610;
+    public static $default_user     = 788805;
     static $return_error            = false;
     static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
 
@@ -205,16 +206,26 @@ class HubstaffConnect extends Model
 
     public static function postTasks($project_id, $accelo, $type='task'){
 
-        echo $assignee = $accelo['manager'];
+        $assignee = isset($accelo['manager']) ? $accelo['manager'] : $accelo['assignee'];
         $members = AcceloMembers::get_HID_byAID($assignee);
+        $members = $members ? $members : self::$default_user;
 
+        $title = isset($accelo['title']) ? $accelo['title'] : '';
+        $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
         $post = array(
-              "name"        => $type."-".$accelo['id'].": ".$accelo['title'], 
-              "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],
-              "summary"     => $type."-".$accelo['id']." :: Title: ".$accelo['title'].( $accelo['description'] ? "  Description: ".$accelo['description'] : ''),
+              "name"        => $type."-".$accelo['id'].": ".$title, 
+              "summary"     => $type."-".$accelo['id']." :: Title: ".$title.$description,
               'assignee_id' => $members 
             );
-        dd($post, $accelo);
+        if ($type == 'PROJECT') {
+            $style = 'style="padding-left: 50px;"';
+        } else if ($type == 'MILESTONE') {
+            $style = 'style="padding-left: 100px;"';
+        } else if ($type == 'TASK') {
+            $style = 'style="padding-left: 150px; background: #cdcdcd;"';
+        }
+        echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';
+        #dd($post, $accelo);
 
         $url = "https://api.hubstaff.com/v2/projects/$project_id/tasks";
         $result = self::apiPost($url, $post);

@@ -17,6 +17,7 @@ class AcceloConnect extends Model
     static $access_token = '';
     static $return_error = false;
     static $apiCurl      = false;
+    static $limit      	 = 50;
 
     public function __construct()
     {
@@ -260,74 +261,139 @@ class AcceloConnect extends Model
 
 	} //getProjects
 
-	public static function getProjectMilestones($id){
+	public static function getProjectMilestones($project_id){
+
+		$limit = self::$limit;
 
 		$post = [];
-		$post["_fields"] 	= "_ALL";
-		//$post["_filters"] 	= "standing(active)";
+		$post["_filters"] 	= "job($project_id)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
-		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/jobs/$id/milestones";
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/milestones/count";
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::getResult($params);
+      	$count = self::getResult($params);
+      	#$count = $count['count'];
+
+      	$records = array();
+  		$pages = ceil($count / $limit);
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+      	for ($p=0; $p < $pages; $p++) {
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+			$post["_filters"] 	= "job($project_id)";
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/milestones?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
+
+			$new_records = self::MultiplecurlAccelo($params);
+			$records = array_merge($records, $new_records);
+      	}
+  		curl_close($ch);
+
+      	return $records;
 
 	} //getProjectMilestones	
 
-	public static function getMilestoneTask($id){
+	public static function getMilestoneTasks($id){
+		$limit = self::$limit;
 
 		$post = [];
-		$post["_fields"] 	= "_ALL";
-		//$post["_filters"] 	= "standing(active)";
+		$post["_filters"] 	= "against_id($id)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
-		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/jobs/$id/milestones";
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks/count";
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::getResult($params);
+      	$count = self::getResult($params);
+      	$count = $count['count'];
 
-	} //getProjectMilestones		
+      	$tasks = array();
+  		$pages = ceil($count / $limit);
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+      	for ($p=0; $p < $pages; $p++) {
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+			$post["_filters"] 	= "against_id($id)";
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
+
+			$tasks_page = self::MultiplecurlAccelo($params);
+
+			$tasks = array_merge($tasks, $tasks_page);
+			#echo "PAGE: $p ".count($tasks_page)."<br />";
+      	}
+  		curl_close($ch);
+
+      	return $tasks;
+	} //getProjectMilestones
 
 	public static function getProjects(){
 
+		$limit = self::$limit;
+
 		$post = [];
-		$post["_limit"] 	= 50;
-		$post["_fields"] 	= "_ALL";
 		$post["_filters"] 	= "standing(active)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
-		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/jobs";
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/jobs/count";
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::getResult($params);
+      	$count = self::getResult($params);
+      	$count = $count['count'];
 
+      	$records = array();
+  		$pages = ceil($count / $limit);
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+      	for ($p=0; $p < $pages; $p++) {
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+			$post["_filters"] 	= "standing(active)";
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/jobs?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
+
+			$new_records = self::MultiplecurlAccelo($params);
+			$records = array_merge($records, $new_records);
+      	}
+  		curl_close($ch);
+
+      	return $records;
 	} //getProjects
 
-	public static function getTasks(){
-		$limit = 50;
-
-		$post = [];
-		$post["_limit"] 	= $limit;
-		$post["_fields"] 	= "_ALL";
-		$post_data = http_build_query($post);
-
-		$params 		= array();
-		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
-		$params['type'] = "GET";
-		$params['data']	= $post_data;
-
-      	return self::getResult($params);
-
-	} //getLatestTasks
-
 	public static function getAllTasks(){
-		$limit = 50;
+		$limit = self::$limit;
 
 		$post = [];
 		$post_data = http_build_query($post);
@@ -341,59 +407,81 @@ class AcceloConnect extends Model
       	$count = $count['count'];
 
       	$tasks = array();
-      	if($count > $limit) {
-      		$pages = ceil($count / $limit);
+  		$pages = ceil($count / $limit);
 
-	      	$ch = curl_init();
-	      	self::setCurl($ch);
+      	$ch = curl_init();
+      	self::setCurl($ch);
 
-	      	for ($p=1; $p <= $pages; $p++) {
-				$post = [];
-				$post["_limit"] 	= $limit;
-				//$post["_page"] 		= $p;
-				$post["_fields"] 	= "_ALL";
-				$post_data = http_build_query($post);
+      	for ($p=0; $p < $pages; $p++) {
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
 
-				$params 		= array();
-				$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks?_page=$p";
-				$params['type'] = "GET";
-				$params['data']	= $post_data;
+			$post_data = http_build_query($post);
 
-				$tasks_page = self::MultiplecurlAccelo($params);
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
 
-				$tasks = array_merge($tasks, $tasks_page);
-				#echo "PAGE: $p ".count($tasks_page)."<br />";
-	      	}
-      		curl_close($ch);
+			$tasks_page = self::MultiplecurlAccelo($params);
+
+			$tasks = array_merge($tasks, $tasks_page);
+			#echo "PAGE: $p ".count($tasks_page)."<br />";
       	}
-
-      	#echo count($tasks);
-		#dd($tasks);
+  		curl_close($ch);
 
       	return $tasks;
-
 	} //getAllTasks
 
 	public static function getProjectTasks($project_id){
+		$limit = self::$limit;
 
 		$post = [];
-		$post["_limit"] 	= 50;
-		$post["_fields"] 	= "_ALL";
+		$post["_filters"] 	= "child_of_job($project_id)";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
-		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks/count";
 		$params['type'] = "GET";
 		$params['data']	= $post_data;
 
-      	return self::getResult($params);
+      	$count = self::getResult($params);
+      	$count = $count['count'];
 
-	} //getTasks	
+      	$tasks = array();
+  		$pages = ceil($count / $limit);
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+      	for ($p=0; $p < $pages; $p++) {
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+			$post["_filters"] 	= "child_of_job($project_id)";
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
+
+			$tasks_page = self::MultiplecurlAccelo($params);
+
+			$tasks = array_merge($tasks, $tasks_page);
+			#echo "PAGE: $p ".count($tasks_page)."<br />";
+      	}
+  		curl_close($ch);
+
+      	return $tasks;
+	} //getProjectTasks
 
 	public static function getTickets($p=0){
 		$ticket = self::$project_ticket;
 
-		$limit = 50;
+		$limit = self::$limit;
 
 		$post = [];
 		$post_data = http_build_query($post);
@@ -412,28 +500,22 @@ class AcceloConnect extends Model
       	$ch = curl_init();
       	self::setCurl($ch);
 
-      	for ($p=1; $p <= $pages; $p++) {
+      	for ($p=0; $p < $pages; $p++) {
 			$post = [];
-			$post["_limit"] 	= $limit;
-			//$post["_page"] 		= $p;
 			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+
 			$post_data = http_build_query($post);
 
 			$params 		= array();
-			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/issues";
-			$params['url'] 	= $params['url'].( ($count > $limit) ? "?_page=$p" : "");
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/issues?_page=$p";
 			$params['type'] = "GET";
 			$params['data']	= $post_data;
 
-			$records_page = self::MultiplecurlAccelo($params);
-
-			$records = array_merge($records, $records_page);
-			#echo "PAGE: $p ".count($records_page)."<br />";
+			$new_records = self::MultiplecurlAccelo($params);
+			$records = array_merge($records, $new_records);
       	}
   		curl_close($ch);
-
-      	#echo count($records);
-		#dd($records);
 
       	return $records;
 	} //getTickets
