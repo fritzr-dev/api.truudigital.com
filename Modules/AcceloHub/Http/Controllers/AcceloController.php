@@ -298,7 +298,7 @@ class AcceloController extends Controller
     } //postAccelo2HubstaffProjectMilestone
 
     public function postAccelo2HubstaffProjectMilestoneTask(){
-
+      $error = []; $success = [];
       $records = $this->getAcceloProjects();
       $result = [];
       foreach ($records as $key => $record) {
@@ -306,7 +306,19 @@ class AcceloController extends Controller
         $hubstaff_project_id  = $record->hubstaff_project_id;
         $project              = json_decode($record->acceloProj_data);
 
-        #$project_task = HubstaffConnect::postTasks($accelo_project_id, (array) $project, 'PROJECT');
+        $project_task = HubstaffConnect::postTasks($accelo_project_id, (array) $project, 'PROJECT');
+        $tasks  = AcceloConnect::getProjectTasks($accelo_project_id);
+        foreach ($tasks as $key => $task) {
+          $new_task = false;
+          if ($task['job']) {
+            $new_task = HubstaffConnect::postTasks($accelo_project_id, $task, 'TASK');
+          }
+          if ($new_task) {
+            $success[] = $new_task;
+          } else {
+            $error[] = array('error' => 'Error in posting to hubstaff', 'api' => $task);
+          }
+        }        
         $milestones  = AcceloConnect::getProjectMilestones($accelo_project_id);
         #dd($milestones);
         $ch = curl_init();
@@ -316,7 +328,7 @@ class AcceloController extends Controller
           #echo "--MILESTONE: ".$accelo['title']."<br />";
           $milestone_id = $accelo['id'];
 
-          #$milestone_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
+          $milestone_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
           $tasks = AcceloConnect::getMilestoneTasks($milestone_id);
           foreach ($tasks as $key => $task) {
             #echo "-------TASK ".($key+1).": ".$task['title']."<br />";
@@ -333,7 +345,7 @@ class AcceloController extends Controller
         }
       }
 
-      return response()->json( array('success' => $success, 'error' => $error ) );
+      //return response()->json( array('success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjectMilestones
 
     public function resetToken(){

@@ -218,11 +218,11 @@ class HubstaffConnect extends Model
               'assignee_id' => $members 
             );
         if ($type == 'PROJECT') {
-            $style = 'style="padding-left: 50px;"';
+            $style = 'style="padding-left: 50px; font-weight: bold; font-size: 15px;"';
         } else if ($type == 'MILESTONE') {
-            $style = 'style="padding-left: 100px;"';
+            $style = 'style="padding-left: 100px; font-style: italic; font-size: 14px;"';
         } else if ($type == 'TASK') {
-            $style = 'style="padding-left: 150px; background: #cdcdcd;"';
+            $style = 'style="padding-left: 150px;fonts-size: 11px;"';
         }
         echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';
         #dd($post, $accelo);
