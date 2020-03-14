@@ -18,6 +18,7 @@ class AcceloConnect extends Model
     static $return_error = false;
     static $apiCurl      = false;
     static $limit      	 = 50;
+    static $cUrl_run     = 0;
 
     public function __construct()
     {
@@ -194,6 +195,7 @@ class AcceloConnect extends Model
 		  ));
 
       $response = curl_exec($curl);
+      self::$cUrl_run =  self::$cUrl_run + 1;
 
       $result = (json_decode($response, true));
       #dd($result);

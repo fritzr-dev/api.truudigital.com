@@ -90,10 +90,10 @@ class AcceloController extends Controller
     } //getAcceloProjects
 
     public function postAccelo2HubstaffTickets(){
-      $error = []; $success = [];
+      $error = []; $success = []; $result = []; $migrated = [];
 
       $result  = AcceloConnect::getTickets();
-      dd($result);
+
       $tickets = $result;
       if($tickets){
 
@@ -101,59 +101,27 @@ class AcceloController extends Controller
         HubstaffConnect::setCurl($ch);
         $project_TICKET = AcceloConnect::$project_ticket;
         foreach ($tickets as $key => $accelo) {
-          $assignee = $accelo['assignee'];
-          $members = AcceloMembers::get_HID_byAID($assignee);
-
-          $post = array(
-                  "name"        => "TICKET-".$accelo['id'].": ".$accelo['title'], 
-                  "description" => "Accelo Ticket ID:".$accelo['id'].". ".$accelo['description'],
-                  "summary"     => "TICKET-".$accelo['id']." :: Title:".$accelo['title']."  Description:".$accelo['description'],
-                  "assignee_id" => $members
-                  //"client_id"=> 0
-                );
-          $hubstaff = HubstaffConnect::postTask($project_TICKET, $post);
-          #dd($post, $accelo, $hubstaff);
-
           /*saved to DB*/
-          $ticket_task= [];
-          if (isset($hubstaff['task'])) {
-            $hubstaff = $hubstaff['task'];
-            $accelo_ticket_id   = $accelo['id'];
-            $hubstaff_task_id = $hubstaff['id'];
-            $acceloTicket_data     = json_encode($accelo);
-            $hubstaffTask_data   = json_encode($hubstaff);
-              $entry = AcceloTickets::where('accelo_ticket_id', $accelo_ticket_id)->first();#->where('hubstaff_task_id', $hubstaff_task_id)
-              if(!$entry){
-                $ticket_task= AcceloTickets::create([
-                  'accelo_ticket_id'   => $accelo_ticket_id,
-                  'hubstaff_task_id' => $hubstaff_task_id,
-                  'acceloTicket_data'     => $acceloTicket_data,
-                  'hubstaffTask_data'   => $hubstaffTask_data
-                ]);
-              } else {
-                $update_entry = AcceloTickets::find($entry->id);
-                $update_entry->acceloTicket_data = $acceloTicket_data;
-                $update_entry->hubstaffTask_data = $hubstaffTask_data;
-                $update_entry->hubstaff_task_id  = $hubstaff_task_id;
-                $update_entry->update();
-              }
-
-            $success[] = $accelo;
-          } else {
-            $error[] = array('error' => 'Error in posting to hubstaff', 'post' => $post, 'api' => $hubstaff);
-          }
+          $new_task = HubstaffConnect::postTasks($project_TICKET, $accelo, 'TICKET');
           /*saved to DB END*/
 
+          if (isset($new_task['success']) && $new_task['success']) {
+            $success[] = $new_task['success'];
+          } else if (isset($new_task['migrated']) && $new_task['migrated']) {
+            $migrated[] = $new_task['migrated'];
+          } else if (isset($new_task['error']) && $new_task['error']) {
+            $error[] = $new_task['error'];
+          }
         } // foreach
         curl_close($ch);
         //dd($ticket_task, $success, $error);
-        return response()->json(array('success' => $success, 'error' => $error ) );
       }
       #report to admin
       #dd($error);
-      #return response()->json($result);
+      echo $curl = AcceloConnect::$cUrl_run + HubstaffConnect::$cUrl_run;
+      return response()->json( array('success' => $success, 'error' => $error, 'migrated' => $migrated ) );
     } //postAccelo2HubstaffTickets
-    
+
     public function postAccelo2HubstaffProjects(){
       $error = []; $success = []; $result = []; $migrated = [];
 
@@ -183,7 +151,8 @@ class AcceloController extends Controller
               'accelo_project_id'   => $accelo_project_id,
               'hubstaff_project_id' => $hubstaff_project_id,
               'acceloProj_data'     => $acceloProj_data,
-              'hubstaffProj_data'   => $hubstaffProj_data
+              'hubstaffProj_data'   => $hubstaffProj_data,
+              'status'              => 1,
             ]);
             $success[] = $accelo;
           } else {
@@ -201,26 +170,35 @@ class AcceloController extends Controller
     } //postAccelo2HubstaffProjects
 
     public function postAccelo2HubstaffProjectTasks(){
-      $error = []; $success = [];
+      $error = []; $success = []; $result = []; $migrated = [];
 
       $records = $this->getAcceloProjects();
       foreach ($records as $key => $record) {
         $accelo_project_id    = $record->accelo_project_id;
         $hubstaff_project_id  = $record->hubstaff_project_id;
+
+        /*project task*/
         $tasks  = AcceloConnect::getProjectTasks($accelo_project_id);
+
         foreach ($tasks as $key => $task) {
-          $new_task = false;
+
+          $new_task = array('success' => '', 'migrated' => '', 'success' => 'error');
           if ($task['job']) {
             $new_task = HubstaffConnect::postTasks($accelo_project_id, $task, 'TASK');
           }
-          if ($new_task) {
-            $success[] = $new_task;
-          } else {
-            $error[] = array('error' => 'Error in posting to hubstaff', 'api' => $task);
+
+          if (isset($new_task['success']) && $new_task['success']) {
+            $success[] = $new_task['success'];
+          } else if (isset($new_task['migrated']) && $new_task['migrated']) {
+            $migrated[] = $new_task['migrated'];
+          } else if (isset($new_task['error']) && $new_task['error']) {
+            $error[] = $new_task['error'];
           }
         }
+        /*project task*/
       }
-      return response()->json( array('success' => $success, 'error' => $error ) );
+      echo $curl = AcceloConnect::$cUrl_run + HubstaffConnect::$cUrl_run;
+      return response()->json( array('success' => $success, 'error' => $error, 'migrated' => $migrated ) );
     } //postAccelo2HubstaffProjectTasks
 
     public function postAccelo2HubstaffProjectMilestone(){
@@ -231,9 +209,28 @@ class AcceloController extends Controller
       foreach ($records as $key => $record) {
         $accelo_project_id    = $record->accelo_project_id;
         $hubstaff_project_id  = $record->hubstaff_project_id;
-        $project              = json_decode($record->acceloProj_data);
 
         #$project_task = HubstaffConnect::postTasks($accelo_project_id, (array) $project, 'PROJECT');
+        /*project task*/
+        $tasks  = AcceloConnect::getProjectTasks($accelo_project_id);
+
+        foreach ($tasks as $key => $task) {
+
+          $new_task = array('success' => '', 'migrated' => '', 'success' => 'error');
+          if ($task['job']) {
+            $new_task = HubstaffConnect::postTasks($accelo_project_id, $task, 'TASK');
+          }
+
+          if (isset($new_task['success']) && $new_task['success']) {
+            $success[] = $new_task['success'];
+          } else if (isset($new_task['migrated']) && $new_task['migrated']) {
+            $migrated[] = $new_task['migrated'];
+          } else if (isset($new_task['error']) && $new_task['error']) {
+            $error[] = $new_task['error'];
+          }
+        }
+        /*project task*/
+
         $milestones  = AcceloConnect::getProjectMilestones($accelo_project_id);
         /*store Milestone*/
         #dd($milestones);
@@ -241,15 +238,18 @@ class AcceloController extends Controller
         HubstaffConnect::setCurl($ch);
         foreach ($milestones as $key => $accelo) {
           $milestone_id = $accelo['id'];
-          $milestone_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
+          $new_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
           /*store milestone*/
-          if ($milestone_task) {
-            $success[] = $milestone_task;
-          } else {
-            $error[] = array('error' => 'Error in posting to hubstaff', 'api' => $accelo);
-          }          
+          if (isset($new_task['success']) && $new_task['success']) {
+            $success[] = $new_task['success'];
+          } else if (isset($new_task['migrated']) && $new_task['migrated']) {
+            $migrated[] = $new_task['migrated'];
+          } else if (isset($new_task['error']) && $new_task['error']) {
+            $error[] = $new_task['error'];
+          }        
         }
       }
+
       return response()->json( array('success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjectMilestone
 
@@ -262,7 +262,7 @@ class AcceloController extends Controller
         $hubstaff_project_id  = $record->hubstaff_project_id;
         $project              = json_decode($record->acceloProj_data);
 
-        $project_task = HubstaffConnect::postTasks($accelo_project_id, (array) $project, 'PROJECT');
+        #$project_task = HubstaffConnect::postTasks($accelo_project_id, (array) $project, 'PROJECT');
         $tasks  = AcceloConnect::getProjectTasks($accelo_project_id);
         foreach ($tasks as $key => $task) {
           $new_task = false;
@@ -274,7 +274,8 @@ class AcceloController extends Controller
           } else {
             $error[] = array('error' => 'Error in posting to hubstaff', 'api' => $task);
           }
-        }        
+        }
+
         $milestones  = AcceloConnect::getProjectMilestones($accelo_project_id);
         #dd($milestones);
         $ch = curl_init();
@@ -284,12 +285,9 @@ class AcceloController extends Controller
           #echo "--MILESTONE: ".$accelo['title']."<br />";
           $milestone_id = $accelo['id'];
 
-          $milestone_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
+          #$milestone_task = HubstaffConnect::postTasks($accelo_project_id, $accelo, 'MILESTONE');
           $tasks = AcceloConnect::getMilestoneTasks($milestone_id);
           foreach ($tasks as $key => $task) {
-            #echo "-------TASK ".($key+1).": ".$task['title']."<br />";
-            #echo "-------ASSIGNEE: ".$task['assignee']."<br />";
-            #echo "<hr />";
             /*post task to hubbstaff*/
             $new_task = HubstaffConnect::postTasks($accelo_project_id, $task, 'TASK');
             if ($new_task) {
@@ -300,8 +298,8 @@ class AcceloController extends Controller
           }
         }
       }
-
-      //return response()->json( array('success' => $success, 'error' => $error ) );
+      echo $curl = AcceloConnect::$cUrl_run + HubstaffConnect::$cUrl_run;
+      return response()->json( array('success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjectMilestones
 
     public function resetToken(){

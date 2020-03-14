@@ -3,6 +3,7 @@
 namespace Modules\AcceloHub\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\AcceloHub\Entities\AcceloTasks;
 
 class HubstaffConnect extends Model
 {
@@ -17,6 +18,7 @@ class HubstaffConnect extends Model
     public static $organization_id  = 239610;
     public static $default_user     = 788805;
     static $return_error            = false;
+    static $cUrl_run     = 0;
 
     static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
 
@@ -104,6 +106,7 @@ class HubstaffConnect extends Model
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
+      self::$cUrl_run =  self::$cUrl_run + 1;
       return json_decode($response, true);
     } //apiRequest
 
@@ -193,7 +196,7 @@ class HubstaffConnect extends Model
         $manager = $manager ? $manager : self::$default_user;
 
         $members = array();
-        $members[] = array("user_id" => $manager, "role"=> "managersss");
+        $members[] = array("user_id" => $manager, "role"=> "manager");
         $post = array(
                 "name"          => "P-".$accelo['id']." ".$accelo['title'], 
                 "description"   => "Accelo ID:".$accelo['id'],
@@ -217,88 +220,96 @@ class HubstaffConnect extends Model
     } //postProject
 
 
-    public static function postTasks($project_id, $accelo, $type='task'){
+    public static function postTasks($accelo_project_id, $accelo, $type='TASK'){
+        $error = ''; $success = ''; $result = ''; $migrated = '';
 
-        $assignee = isset($accelo['manager']) ? $accelo['manager'] : $accelo['assignee'];
-        $members = AcceloMembers::get_HID_byAID($assignee);
-        $members = $members ? $members : self::$default_user;
+        $accelo_id = $accelo['id'];
+        $new_entry = false; $update_entry = false;
 
-        $title = isset($accelo['title']) ? $accelo['title'] : '';
-        $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
-        $post = array(
-              "name"        => $type."-".$accelo['id'].": ".$title, 
-              "summary"     => $type."-".$accelo['id']." :: Title: ".$title.$description,
-              'assignee_id' => $members 
-            );
-        if ($type == 'PROJECT') {
-            $style = 'style="padding-left: 50px; font-weight: bold; font-size: 15px;"';
-        } else if ($type == 'MILESTONE') {
-            $style = 'style="padding-left: 100px; font-style: italic; font-size: 14px;"';
-        } else if ($type == 'TASK') {
-            $style = 'style="padding-left: 150px;fonts-size: 11px;"';
+        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->first();
+
+        if(!$entry){
+            $new_entry = true;
+        } else if($entry->status == 0) {
+            $update_entry = true;
         }
-        echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';
-        #dd($post, $accelo);
+        if($new_entry || $update_entry){
 
-        $url = "https://api.hubstaff.com/v2/projects/$project_id/tasks";
-        $result = self::apiPost($url, $post);
-        if (isset($result['error']) && $result['error'] == 'invalid_token') {
-            if (self::$retoken == 0) {
-                self::$retoken = 1;
-                self::refreshToken();
-                $result = self::apiPostInitCurl($url, $post);
-            } 
+            $assignee   = isset($accelo['manager']) ? $accelo['manager'] : $accelo['assignee'];
+            $members    = AcceloMembers::get_HID_byAID($assignee);
+            $members    = $members ? $members : self::$default_user;
+
+            $title = isset($accelo['title']) ? $accelo['title'] : '';
+            $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
+            $post = array(
+                  "name"        => $type."-".$accelo['id'].": ".$title, 
+                  "summary"     => $type."-".$accelo['id']." :: ".$title.$description,
+                  "description" => "Accelo Ticket ID:".$accelo['id'].". ".$description,
+                  'assignee_id' => $members 
+                );
+
+            /*if ($type == 'PROJECT') {
+                $style = 'style="padding-left: 50px; font-weight: bold; font-size: 15px;"';
+            } else if ($type == 'MILESTONE') {
+                $style = 'style="padding-left: 100px; font-style: italic; font-size: 14px;"';
+            } else if ($type == 'TASK') {
+                $style = 'style="padding-left: 150px;fonts-size: 11px;"';
+            } else if ($type == 'TICKET') {
+                $style = 'style="padding-left: 50px; font-weight: bold;font-style: italic;"';
+            }
+            echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';*/
+            #dd($post, $accelo);
+
+            $url = "https://api.hubstaff.com/v2/projects/$accelo_project_id/tasks";
+            $result = self::apiPost($url, $post);
+            if (isset($result['error']) && $result['error'] == 'invalid_token') {
+                if (self::$retoken == 0) {
+                    self::$retoken = 1;
+                    self::refreshToken();
+                    $result = self::apiPostInitCurl($url, $post);
+                } 
+            } else {
+                self::$retoken = 0;
+            }
+            $hubstaff = $result;
+            #dd($hubstaff);
+            if(isset($hubstaff['tasks'])) {
+
+                $hubstaff = $hubstaff['tasks'];
+                $accelo_id      = $accelo['id'];
+                $hubstaff_id    = $hubstaff['id'];
+                $accelo_data    = json_encode($accelo);
+                $hubstaff_data  = json_encode($hubstaff);
+
+                $hubstaff_project_id = 1;
+                if($new_entry){
+
+                    AcceloTasks::create([
+                      'project_id'          => $accelo_project_id,
+                      'accelo_task_id'      => $accelo_id,
+                      'hubstaff_task_id'    => $hubstaff_id,
+                      'acceloTask_data'     => $accelo_data,
+                      'hubstaffTask_data'   => $hubstaff_data,
+                      'type'                => $type,
+                      'status'              => 1,
+                    ]);
+
+                    $success = $hubstaff;
+
+                } else if ($update_entry) {
+                    $update_entry = AcceloTasks::find($accelo->id);
+                    $update_entry->acceloTask_data  = json_encode($accelo);
+                    $update_entry->update();
+                    $migrated = array('error' => 'Migrated', 'api' => $hubstaff);
+                }
+            } else {
+                $error = array('error' => 'Error in posting to hubstaff', 'api' => $accelo);
+            }
+
         } else {
-            self::$retoken = 0;
+            $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
         }
-
-        dd($result);
-
-        /*saved to DB*/
-        $ticket_task= [];
-        if (isset($hubstaff['task'])) {
-            $hubstaff = $hubstaff['task'];
-            $accelo_ticket_id   = $accelo['id'];
-            $hubstaff_task_id = $hubstaff['id'];
-            $acceloTicket_data     = json_encode($accelo);
-            $hubstaffTask_data   = json_encode($hubstaff);
-              $entry = AcceloTickets::where('accelo_ticket_id', $accelo_ticket_id)->first();#->where('hubstaff_task_id', $hubstaff_task_id)
-              if(!$entry){
-                $ticket_task= AcceloTickets::create([
-                  'accelo_ticket_id'   => $accelo_ticket_id,
-                  'hubstaff_task_id' => $hubstaff_task_id,
-                  'acceloTicket_data'     => $acceloTicket_data,
-                  'hubstaffTask_data'   => $hubstaffTask_data
-                ]);
-              } else {
-                $update_entry = AcceloTickets::find($entry->id);
-                $update_entry->acceloTicket_data = $acceloTicket_data;
-                $update_entry->hubstaffTask_data = $hubstaffTask_data;
-                $update_entry->hubstaff_task_id  = $hubstaff_task_id;
-                $update_entry->update();
-              }
-
-            $success[] = $accelo;
-        } else {
-            $error[] = array('error' => 'Error in posting to hubstaff', 'post' => $post, 'api' => $hubstaff);
-        }
-        /*saved to DB END*/
-
-
-        $url = "https://api.hubstaff.com/v2/projects/$project_id/tasks";
-        #dd($post);
-        $result = self::apiPost($url, $post);
-        if (isset($result['error']) && $result['error'] == 'invalid_token') {
-            if (self::$retoken == 0) {
-                self::$retoken = 1;
-                self::refreshToken();
-                $result = self::apiPostInitCurl($url, $post);
-            } 
-        } else {
-            self::$retoken = 0;
-        }
-
-        return $result;
+        return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
     } //postTasks
 
     public static function postTask($project_id, $post){
