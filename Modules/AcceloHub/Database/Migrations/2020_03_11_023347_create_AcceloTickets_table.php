@@ -19,6 +19,7 @@ class CreateAcceloTicketsTable extends Migration
             $table->string('hubstaff_task_id');
             $table->longText('acceloTicket_data')->nullable();
             $table->longText('hubstaffTask_data')->nullable();
+            $table->integer('status')->default('0');
             $table->timestamps();
         });
     }

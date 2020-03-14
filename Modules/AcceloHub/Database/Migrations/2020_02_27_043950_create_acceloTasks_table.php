@@ -22,6 +22,7 @@ class CreateAcceloTasksTable extends Migration
             $table->longText('hubstaffTask_data')->nullable();             
             $table->string('type')->nullable();             
             $table->timestamps();
+            $table->integer('status')->default('0');
             $table->foreign('project_id')->references('id')->on('acceloProjects')
                 ->onDelete('cascade');
         });

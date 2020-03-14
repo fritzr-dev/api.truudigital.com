@@ -17,6 +17,7 @@ class HubstaffConnect extends Model
     public static $organization_id  = 239610;
     public static $default_user     = 788805;
     static $return_error            = false;
+
     static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
 
     static $retoken   = 0;
@@ -185,10 +186,22 @@ class HubstaffConnect extends Model
         return $result;
     } //getProjects
 
-    public static function postProject($post){
+    public static function postProject($accelo){
 
+        $manager = $accelo['manager'];
+        $manager = AcceloMembers::get_HID_byAID($manager);
+        $manager = $manager ? $manager : self::$default_user;
+
+        $members = array();
+        $members[] = array("user_id" => $manager, "role"=> "managersss");
+        $post = array(
+                "name"          => "P-".$accelo['id']." ".$accelo['title'], 
+                "description"   => "Accelo ID:".$accelo['id'],
+                //"members"       => $members,
+                //"client_id"=> 0
+              );
+        //manager company
         $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/projects";
-        #dd($post);
         $result = self::apiPost($url, $post);
         if (isset($result['error']) && $result['error'] == 'invalid_token') {
             if (self::$retoken == 0) {
