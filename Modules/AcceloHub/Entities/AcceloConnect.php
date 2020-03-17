@@ -9,15 +9,15 @@ use Request;
 class AcceloConnect extends Model
 {
     //protected $fillable = [];
-    static $client_ID 		= '1177d277ef@truudigital.accelo.com';
-    static $client_secret 	= 'hkOxhZz2BvbfCxJAFqgrw9Hs3ZOGigH8';
-    static $project_ticket 	= '932390';
+    //static $client_ID 		= '1177d277ef@truudigital.accelo.com';
+    //static $client_secret 	= 'hkOxhZz2BvbfCxJAFqgrw9Hs3ZOGigH8';
+    //static $project_ticket 	= '940266';
+    //static $return_error = false;
 
     static $client_token = [];
     static $access_token = '';
-    static $return_error = false;
     static $apiCurl      = false;
-    static $limit      	 = 50;
+    //static $limit      	 = 50;
     static $cUrl_run     = 0;
 
     public function __construct()
@@ -72,7 +72,7 @@ class AcceloConnect extends Model
 
 	public static function oauth(){
 
-		$client_credentials = base64_encode(self::$client_ID.":".self::$client_secret);
+		$client_credentials = base64_encode(config('accelohub.client_ID').":".config('accelohub.client_secret'));
 
 		$curl = curl_init();
 
@@ -160,7 +160,7 @@ class AcceloConnect extends Model
 		if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
 				$data = $result['response'];
 		} else {
-			if(self::$return_error) {
+			if(config('accelohub.return_error')) {
 				$data = $result;
 			}
 		}
@@ -203,7 +203,7 @@ class AcceloConnect extends Model
 		if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
 				$data = $result['response'];
 		} else {
-			if(self::$return_error) {
+			if(config('accelohub.return_error')) {
 				$data = $result;
 			}
 		}
@@ -217,7 +217,7 @@ class AcceloConnect extends Model
 	public static function getStaff(){
 
 		$post = [];
-		$post["_limit"] 	= 50;
+		$post["_limit"] 	= config('accelohub.limit');
 		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
 		$post_data = http_build_query($post);
 
@@ -233,7 +233,7 @@ class AcceloConnect extends Model
 	public static function getCompanies(){
 
 		$post = [];
-		$post["_limit"] 	= 50;
+		$post["_limit"] 	= config('accelohub.limit');
 		$post["_fields"] 	= "_ALL";
 		$post["_filters"] 	= "standing(active)";
 		$post_data = http_build_query($post);
@@ -265,7 +265,7 @@ class AcceloConnect extends Model
 
 	public static function getProjectMilestones($project_id){
 
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post["_filters"] 	= "job($project_id)";
@@ -308,7 +308,7 @@ class AcceloConnect extends Model
 	} //getProjectMilestones	
 
 	public static function getMilestoneTasks($id){
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post["_filters"] 	= "against_id($id)";
@@ -353,7 +353,7 @@ class AcceloConnect extends Model
 
 	public static function getProjects(){
 
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post["_filters"] 	= "standing(active)";
@@ -395,7 +395,7 @@ class AcceloConnect extends Model
 	} //getProjects
 
 	public static function getAllTasks(){
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post_data = http_build_query($post);
@@ -437,7 +437,7 @@ class AcceloConnect extends Model
 	} //getAllTasks
 
 	public static function getProjectTasks($project_id){
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post["_filters"] 	= "child_of_job($project_id)";
@@ -481,9 +481,9 @@ class AcceloConnect extends Model
 	} //getProjectTasks
 
 	public static function getTickets($p=0){
-		$ticket = self::$project_ticket;
+		$ticket = config('accelohub.project_ticket');
 
-		$limit = self::$limit;
+		$limit = config('accelohub.limit');
 
 		$post = [];
 		$post_data = http_build_query($post);
@@ -525,7 +525,7 @@ class AcceloConnect extends Model
 	public static function getActivities(){
 
 		$post = [];
-		$post["_limit"] 	= 50;
+		$post["_limit"] 	= config('accelohub.limit');
 		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
 		$post_data = http_build_query($post);
 

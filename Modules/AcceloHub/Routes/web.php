@@ -66,11 +66,14 @@ Route::prefix('accelo')->group(function() {
 Route::prefix('hubstaff')->group(function() {
 	Route::get('/', 'HubstaffController@index');
 
-	Route::get('/members', 'HubstaffController@getOrganizationMembers');
+	Route::get('/timesheets', 'HubstaffController@getTimesheets');;
+
+	/*Route::get('/members', 'HubstaffController@getOrganizationMembers');
 	Route::get('/companies', 'HubstaffController@getClients');
 	Route::get('/projects', 'HubstaffController@getProjects');
+	Route::get('/projects/{id}', 'HubstaffController@getProject');
 	Route::get('/tasks', 'HubstaffController@getTasks');
-	Route::get('/activities', 'HubstaffController@getActivities');
+	Route::get('/activities', 'HubstaffController@getActivities');*/
 	Route::get('/reset', 'HubstaffController@resetToken');
 
 	Route::get('/oauth', 'HubstaffController@oauth');
@@ -85,12 +88,15 @@ Route::prefix('hubstaff')->group(function() {
 Route::prefix('accelotohub')->group(function() {
 	Route::get('/', 'AcceloController@index');
 
+	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects'); // get accelo project and post to hubstaff immediately
+	Route::get('/tickets/schedule', 'AcceloController@postAccelo2DBTickets'); // schedule new tickets as _TICKET task
+	Route::get('/projects/tasks/schedule', 'AcceloController@postAccelo2DBProjectTasks'); // schedule project task
+
 	Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');
-	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects');
-	Route::get('/projects/milestones', 'AcceloController@postAccelo2HubstaffProjectMilestone');
+	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
+	#Route::get('/projects/milestones', 'AcceloController@postAccelo2HubstaffProjectMilestone');
 	Route::get('/projects/milestones/tasks', 'AcceloController@postAccelo2HubstaffProjectMilestoneTask');
 	
-	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
 
 	Route::get('/activities', 'HubstaffController@postHubstaff2AcceloActivities');
 

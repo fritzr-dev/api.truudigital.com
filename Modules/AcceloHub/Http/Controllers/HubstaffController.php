@@ -116,6 +116,13 @@ class HubstaffController extends Controller
         return response()->json($result);
     } //getProjects
 
+    function getProject($id){
+
+        $result = HubstaffConnect::getProject($id);
+
+        return response()->json($result);
+    } //getProject    
+
     function getTasks(){
 
         $result = HubstaffConnect::getTasks();
@@ -129,6 +136,13 @@ class HubstaffController extends Controller
 
         return response()->json($result);
     } //getActivities
+    
+    function getTimesheets(){
+
+        $result = HubstaffConnect::getTimesheets();
+
+        return response()->json($result);
+    } //getTimesheets
     
     function postHubstaff2AcceloActivities(){
 

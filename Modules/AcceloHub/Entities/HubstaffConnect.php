@@ -7,20 +7,21 @@ use Modules\AcceloHub\Entities\AcceloTasks;
 
 class HubstaffConnect extends Model
 {
-    public static $serviceClientID        = 'HDATdk8oi6ZJjmw8o6rGl5XIa2g_tCnQPpo4xblsObc';
-    public static $serviceClientSecret    = 'Zjpy15HX_6Wvak5u8uEHIZbWEgtWx1OWIMuPyJGMPT65MkiVgKb9SNHKq-nR_hmQIJTGVO254fjGyrDT2tqpPw';
-    public static $serviceRedirectURL     = 'http://localhost:8000/hubstaff/oauth';
-    public static $serviceConnectURL      = 'http://localhost:8000/hubstaff/connect';
+    //public static $serviceClientID        = 'vaQZ3O3oNd_fATpLFlgZPupWFkQOIUaHv895Vna_cMs';
+    //public static $serviceClientSecret    = 'ji_KF70MAQBJNIMlhABGZnzcLViVtb9MrGA1d58ay2nWnJi1byUmeJwUeBr5sJKuMJ2Pc9pt2vREu8AMkfdPQw';
+    //public static $serviceRedirectURL     = 'http://localhost:8000/hubstaff/oauth';
+    //public static $serviceConnectURL      = 'http://localhost:8000/hubstaff/connect';
     // This is the endpoint our server will request an access token from
-    public static $tokenURL   = 'https://account.hubstaff.com/access_tokens';
+    //public static $tokenURL   = 'https://account.hubstaff.com/access_tokens';
     // This is the hubstaff base URL we can use to make authenticated API requests
-    public static $apiURLBase       = 'https://api.hubstaff.com/v2/';
-    public static $organization_id  = 239610;
-    public static $default_user     = 788805;
+    //public static $apiURLBase       = 'https://api.hubstaff.com/v2/';
+    //public static $organization_id  = 242946;
+    //public static $default_user     = 3895328;
     static $return_error            = false;
-    static $cUrl_run     = 0;
+    static $cUrl_run    = 0;
+    static $postTask    = 0;
 
-    static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
+    //static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFbTcxbSIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTIxNzE3NDEsImlhdCI6MTU4NDM5NTc0MSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.s7a2BKM4XkLhgnkQkWfTb7NWd0pju2x0Rk--oKoW81mJkU27daLDEUGW8fLDZ9WWo5kFFTQAMYb6p2RQx9cuHBttq00a9xSBzh8mEIlyDL3v5Babry_jDNasRBP-IskA74wI3efpOY3CNb9iPoSlJBunsTEZQjA7W8UBMwCMrZ-QzC7olF55XXQOWFdEzDNzWBgYU1Reda3NFbwSj-QBRb1yZS8QsOzjcJ7QtdpS7yjJoAYT2jr5DtrGLYrXoQIx8aQsp62Of11dFZDXtc51puqsAEhfYLIhNd5ECAiZZIs9Omvw-u3gzDF3cWpEv9E3_p7wLzcshNsgEE91eY-E5Q';
 
     static $retoken   = 0;
     static $user_agent = 'TruuDigital';
@@ -44,32 +45,35 @@ class HubstaffConnect extends Model
       ];
 
         if(isset($post['grant_type']) && $post['grant_type'] == 'authorization_code' ){
-            $client_credentials = base64_encode($this->serviceClientID.":".$this->serviceClientSecret);
+            $client_credentials = base64_encode(config('accelohub.serviceClientID').":".config('accelohub.serviceClientSecret'));
             $headers[] = 'Authorization: Basic ' . $client_credentials;
         } else if(isset($post['grant_type']) && $post['grant_type'] == 'refresh_token' ){
             $client_credentials = base64_encode($post['refresh_token']);
-            $headers[] = 'Authorization: Basic ' . $client_credentials;
+            $headers[] = 'Authorization: Basics ' . $client_credentials;
         } else if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
-        
       curl_setopt($ch, CURLOPT_TIMEOUT, 0);
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
+
+      #dd($response, $headers, $url);
       return json_decode($response, true);
     } //apiRequest
 
     public static function apiPost($url, $post=FALSE, $headers=array()) {
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+      curl_setopt($ch, CURLOPT_POST, TRUE);
 
       if($post)
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
       $headers = [
+        //'Content-Type: application/json',
         'Accept: application/json',
-        'User-Agent: '.self::$user_agent
+        'User-Agent: '.self::$user_agent,
       ];
 
         if(isset($_SESSION['access_token'])) {
@@ -79,12 +83,17 @@ class HubstaffConnect extends Model
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
+      self::countCurl();
       return json_decode($response, true);
-    } //apiRequest
+    } //apiPost
 
+    public static function countCurl(){
+        self::$cUrl_run =  self::$cUrl_run + 1;
+    }//countCurl
     public static function setCurl($ch){
         self::$apiCurl = $ch;
     }//setCurl
+
     public static function apiPostInitCurl($url, $post=FALSE, $headers=array()) {
       #$ch = curl_init($url);
       $ch = self::$apiCurl;
@@ -106,20 +115,20 @@ class HubstaffConnect extends Model
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
-      self::$cUrl_run =  self::$cUrl_run + 1;
       return json_decode($response, true);
     } //apiRequest
 
     /*Refresh token HUBSTAFF*/
     public static function refreshToken(){
-        $code   = self::$personal_access_tokens;
+        $code   = config('accelohub.personal_access_tokens');
 
         // Exchange the auth code for an access token
-        $token = self::apiRequest(self::$tokenURL, array(
+        $token = self::apiRequest(config('accelohub.tokenURL'), array(
           'grant_type'    => 'refresh_token',
           'refresh_token' => $code
         ));
         $access_token = '';
+
         if (isset($token['access_token'])) {
             $_SESSION['access_token'] = $token['access_token'];
             $access_token = $token['access_token'];
@@ -145,11 +154,11 @@ class HubstaffConnect extends Model
 
         $data = [];
         if(isset($result['error'])) {
-			if(self::$return_error) {
+			if(config('accelohub.return_error')) {
             	$data = $result;
 			}
         } else {
-            $data = $result[$list];
+            $data = isset($result[$list]) ? $result[$list] : reset($result);
         }
 
         return $data;
@@ -160,14 +169,13 @@ class HubstaffConnect extends Model
         $url = "https://api.hubstaff.com/v2/users/$user_id";
 
         $result = self::getResults($url, 'user');
-
         return $result;
 
     } //getOrganizationMembers
 
     public static function getOrganizationMembers(){
 
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/members?page_limit=50";
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/members?page_limit=50";
 
         $result = self::getResults($url, 'members');
 
@@ -176,35 +184,42 @@ class HubstaffConnect extends Model
     } //getOrganizationMembers
 
     function getClients(){
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/clients?status=active";
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/clients?status=active";
         $result = self::getResults($url, 'clients');
 
         return $result;
     } //getClients
 
     public static function getProjects(){
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/projects";
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/projects";
         $result = self::getResults($url, 'projects');
 
         return $result;
     } //getProjects
 
+    public static function getProject($id){
+        $url = "https://api.hubstaff.com/v2/projects/".$id."/members";
+        $result = self::getResults($url, 'members');
+
+        return $result;
+    } //getProject
+
     public static function postProject($accelo){
 
         $manager = $accelo['manager'];
         $manager = AcceloMembers::get_HID_byAID($manager);
-        $manager = $manager ? $manager : self::$default_user;
+        $manager = $manager ? $manager : config('accelohub.default_user');
 
         $members = array();
         $members[] = array("user_id" => $manager, "role"=> "manager");
         $post = array(
-                "name"          => "P-".$accelo['id']." ".$accelo['title'], 
+                "name"          => "PRJ-".$accelo['id']." ".$accelo['title'], 
                 "description"   => "Accelo ID:".$accelo['id'],
                 //"members"       => $members,
-                //"client_id"=> 0
+                "client_id"     => config('accelohub.default_client')
               );
         //manager company
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/projects";
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/projects";
         $result = self::apiPost($url, $post);
         if (isset($result['error']) && $result['error'] == 'invalid_token') {
             if (self::$retoken == 0) {
@@ -216,9 +231,45 @@ class HubstaffConnect extends Model
             self::$retoken = 0;
         }
 
+        #dd($result, $post);
         return $result;
     } //postProject
 
+    public static function postTasksDB($accelo_project_id, $accelo, $type='TASK'){
+        $error = ''; $success = ''; $result = ''; $migrated = '';
+
+        $accelo_id = $accelo['id'];
+        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->first();
+
+        $accelo_data = json_encode($accelo);
+        if(!$entry){
+            $post_task = [
+                              'project_id'          => $accelo_project_id,
+                              'accelo_task_id'      => $accelo_id,
+                              'hubstaff_task_id'    => '',
+                              'acceloTask_data'     => $accelo_data,
+                              'hubstaffTask_data'   => '',
+                              'type'                => $type,
+                              'status'              => 0,
+                            ];
+            //dd($post_task);
+            $new_task = AcceloTasks::create($post_task);
+            if($new_task) {
+                $success = $accelo;
+            } else {
+                $error = array('error' => 'Error in saving to hubstaff DB', 'api' => $accelo);
+            }
+        } else if($entry->status == 0) {
+            $update_entry = AcceloTasks::find($entry->id);
+            $update_entry->acceloTask_data  = json_encode($accelo);
+            $update_entry->update();
+            $migrated = array('error' => 'Pending Migration', 'api' => $accelo);
+        } else {
+            $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
+        }
+        self::$postTask = self::$postTask +1;
+        return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+    } //postTasks
 
     public static function postTasks($accelo_project_id, $accelo, $type='TASK'){
         $error = ''; $success = ''; $result = ''; $migrated = '';
@@ -233,11 +284,12 @@ class HubstaffConnect extends Model
         } else if($entry->status == 0) {
             $update_entry = true;
         }
+
         if($new_entry || $update_entry){
 
             $assignee   = isset($accelo['manager']) ? $accelo['manager'] : $accelo['assignee'];
             $members    = AcceloMembers::get_HID_byAID($assignee);
-            $members    = $members ? $members : self::$default_user;
+            $members    = $members ? $members : config('accelohub.default_user');
 
             $title = isset($accelo['title']) ? $accelo['title'] : '';
             $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
@@ -272,7 +324,7 @@ class HubstaffConnect extends Model
                 self::$retoken = 0;
             }
             $hubstaff = $result;
-            #dd($hubstaff);
+            //dd($accelo, $hubstaff, $url, $post);
             if(isset($hubstaff['tasks'])) {
 
                 $hubstaff = $hubstaff['tasks'];
@@ -328,9 +380,10 @@ class HubstaffConnect extends Model
         }
 
         return $result;
-    } //postProject
+    } //postTask
+
     public static function getTasks(){
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/tasks";
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/tasks";
         $result = self::getResults($url, 'tasks');
 
         return $result;
@@ -341,11 +394,24 @@ class HubstaffConnect extends Model
         $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
         $time_slot['stop']  = date('Y-m-d\TH:i:sO');
 
-        $url = "https://api.hubstaff.com/v2/organizations/".self::$organization_id."/activities?time_slot[start]=".date('Y-m-d\TH:i:sO', strtotime("-7 days"))."&time_slot[stop]=".date('Y-m-d\TH:i:sO');
+        echo $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/activities?time_slot[start]=".date('Y-m-d\TH:i:sO', strtotime("-7 days"))."&time_slot[stop]=".date('Y-m-d\TH:i:sO');
         #dd($url);
         $result = self::getResults($url, 'activities');
 
         return $result;
     } //getActivities
+
+
+    public static function getTimesheets(){
+        $time_slot = array();
+        $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
+        $time_slot['stop']  = date('Y-m-d\TH:i:sO');
+
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".date('Y-m-d\TH:i:sO', strtotime("-7 days"))."&date[stop]=".date('Y-m-d\TH:i:sO');
+        
+        $result = self::getResults($url, 'timesheets');
+        dd($url, $result);
+        return $result;
+    } //getTimesheets    
 
 }
