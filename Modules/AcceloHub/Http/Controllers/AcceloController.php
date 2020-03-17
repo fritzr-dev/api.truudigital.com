@@ -344,10 +344,7 @@ class AcceloController extends Controller
 
           #$milestone_task = HubstaffConnect::postTasks($hubstaff_project_id, $accelo, 'MILESTONE');
           $tasks = AcceloConnect::getMilestoneTasks($milestone_id);
-          foreach ($tasks as $key => $task) {
-            if(HubstaffConnect::$postTask >=10){
-              break;
-            }            
+          foreach ($tasks as $key => $task) {          
             /*post task to hubbstaff*/
             $new_task = HubstaffConnect::postTasksDB($project_id, $task, 'TASK');
             if (isset($new_task['success']) && $new_task['success']) {
@@ -357,6 +354,9 @@ class AcceloController extends Controller
             } else if (isset($new_task['error']) && $new_task['error']) {
               $error[] = $new_task['error'];
             }      
+            if(HubstaffConnect::$postTask >=10){
+              break;
+            }              
           }
         }
 

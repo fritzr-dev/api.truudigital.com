@@ -34,6 +34,7 @@ Route::group([
 
 	    Route::post('/member/update', 'AcceloHubController@memberUpdate');
 	    Route::get('/projects', 'AcceloHubController@projects');
+	    Route::get('/tasks', 'AcceloHubController@tasks');
 	    Route::get('/tickets', 'AcceloHubController@tickets');
 
 	    Route::get('/organization', 'AcceloHubController@organization');
@@ -46,6 +47,7 @@ Route::prefix('_clear')->group(function() {
 	Route::get('/', 'AcceloHubController@index');
 	Route::get('/members', 'AcceloHubController@ClearSessionMembers');
 });
+
 Route::prefix('accelo')->group(function() {
 	Route::get('/', 'AcceloController@index');
 	

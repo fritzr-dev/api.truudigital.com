@@ -11,11 +11,11 @@
     
     <section class="content-header">
       <h1>
-        Tickets
+        Tasks
       </h1>
       <ol class="breadcrumb">
         <li><a href="{{ url('admin/dashboard') }}"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-        <li class="active">Tickets</li>
+        <li class="active">Tasks</li>
       </ol>
     </section>
 
@@ -28,10 +28,10 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">Tickets</h3>
+              <h3 class="box-title">Tasks</h3>
 
               <div class="box-tools">
-                <form method="get" action="{{ url('admin/accelohub/tickets') }}">
+                <form method="get" action="{{ url('admin/accelohub/tasks') }}">
                   <div class="input-group input-group-sm" style="width: 150px;">
                     <input type="text" name="s" class="form-control pull-right" placeholder="Search" value="{{ request('s') }}" />
 
@@ -49,6 +49,7 @@
                   <th>ID::Acello</th>
                   <th>ID::Hubstaff</th>
                   <th>Hubstaff Description</th>
+                  <th>Type</th>
                   <th>Date Created</th>
                   <th>Status</th>
                 </tr>
@@ -57,6 +58,7 @@
                   <td><strong>{{ $record->accelo_task_id }}</strong> :: {{ $record->accelo_name }}</td>
                   <td><strong>{{ $record->hubstaff_task_id }}</strong> :: {{ $record->hubstaff_name }}</td>
                   <td>{{ $record->hubstaff_desc }}</td>
+                  <td>{{ $record->type }}</td>
                   <td>{{ $record->created_at->diffForHumans() }}</td>
                   <td>
                     @if( $record->status )
