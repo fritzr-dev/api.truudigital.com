@@ -526,7 +526,7 @@ class AcceloConnect extends Model
 
 		$post = [];
 		$post["_limit"] 	= config('accelohub.limit');
-		$post["_fields"] 	= "firstname, surname,mobile,email, position,standing,username";
+		$post["_fields"] 	= "_ALL";
 		$post_data = http_build_query($post);
 
 		$params 		= array();
@@ -538,4 +538,109 @@ class AcceloConnect extends Model
 
 	} //getActivities
 
+	public static function getTimers($p=0){
+
+		$post = [];
+		$post["_limit"] 	= config('accelohub.limit');
+		$post["_fields"] 	= "_ALL";
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/timers";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+      	return self::getResult($params);
+
+	} //getTimers
+
+	public static function postTimesheets($timesheets){
+
+
+        $ch = curl_init();
+        AcceloConnect::setCurl($ch);
+        $records = array();
+        foreach ($timesheets as $key => $time_log) {
+          #dd($time_log);
+
+			$post = $time_log;
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/activities";
+			$params['type'] = "POST";
+			$params['data']	= $post_data;
+
+			$new_records = self::MultiplecurlAccelo($params);
+			dd($new_records);
+			$records = array_merge($records, $new_records);          
+        }
+        curl_close($ch);     
+
+
+    /*$start  = '2020-03-16 12:24:45';
+    $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
+echo "<br />DATE $start to $end <br />"; 
+    $start  = strtotime($start);
+    $end  = strtotime($end);
+    $nonbillable = $end - $start;
+    dd($nonbillable);
+    /*echo "non billable: $nonbillable"."<br />LOGS $start to $end <br />"; 
+    $nonbillable = 7 * 3600;*
+
+      	$timesheets = array();
+      	#1 client 3 Internal
+      	$timesheets[] = array(
+						  'subject' 	=> 'Time Entry - #2619 Setup integration client',
+						  'against_id' 	=> '2619',
+						  'task_id' 	=> '2619',
+						  'against_type' => 'task',
+						  'body' 		=> 'post timelog via api client class',
+						  'owner_id' 	=> '13',
+						  'details' 	=> 'post timelog via api client class details',
+						  'time_allocation' => '2619',
+						  'medium' 			=> 'note',
+						  'nonbillable' 	=> $nonbillable,
+						  'visibility' 		=> 'all',
+						  'date_started' 	=> $start,
+						  //'date_logged' 	=> '1584361485',
+						  'class_id' 		=> '3'
+						);
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+      	foreach ($timesheets as $key => $logs) {
+
+			$post = [];
+			$post["_fields"] 	= "_ALL";
+			$post["_limit"] 	= $limit;
+			$post["_filters"] 	= "job($project_id)";
+
+			$post_data = http_build_query($post);
+
+			$params 		= array();
+			$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/milestones?_page=$p";
+			$params['type'] = "GET";
+			$params['data']	= $post_data;
+
+			$new_records = self::MultiplecurlAccelo($params);
+			$records = array_merge($records, $new_records);
+      	}
+  		curl_close($ch);
+
+		$post = [];
+		$post["_limit"] 	= config('accelohub.limit');
+		$post["_fields"] 	= "_ALL";
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/activities";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+      	return self::getResult($params);*/
+
+	} //postTimesheets
 }

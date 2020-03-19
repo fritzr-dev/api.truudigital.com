@@ -83,8 +83,9 @@ class AcceloController extends Controller
 
     public function getAcceloDBProjects(){
       #developer demo
-      #$accelo_project_id = 290;
-      #$records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
+      $accelo_project_id = 290;
+      $records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
+      return $records;
       $records = AcceloProjects::where('accelo_project_id','!=', 1)->where('status', 0)->limit(4)->get();
       #$records = AcceloProjects::get();#->limit(1);
       return $records;
@@ -426,6 +427,13 @@ class AcceloController extends Controller
       return '';*/
       return response()->json( array('CURL POST'=> HubstaffConnect::$cUrl_run, 'success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjectMilestones
+
+    public function postTimesheets(){
+      $data = '';
+      $result  = AcceloConnect::postTimesheets($data);
+
+      return response()->json($result);
+    } //getAcceloCompanies
 
     public function resetToken(){
       echo $result  = AcceloConnect::resetToken();

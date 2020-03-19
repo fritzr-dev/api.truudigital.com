@@ -7,6 +7,7 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 
 use Modules\AcceloHub\Entities\HubstaffConnect;
+use Modules\AcceloHub\Entities\AcceloConnect;
 
 class HubstaffController extends Controller
 {
@@ -142,7 +143,15 @@ class HubstaffController extends Controller
         $result = HubstaffConnect::getTimesheets();
 
         return response()->json($result);
-    } //getTimesheets
+    } //getTimesheets    
+
+    function postHubstaff2DBTimesheets(){
+
+        $time_logs = HubstaffConnect::getTimesheets();
+        $new_logs = AcceloConnect::postTimesheets($time_logs);   
+        
+        #return response()->json($result);
+    } //postHubstaff2DBTimesheets
     
     function postHubstaff2AcceloActivities(){
 
@@ -155,25 +164,7 @@ class HubstaffController extends Controller
     /*DEVELOPET USE*/
     /*Refresh token HUBSTAFF*/
     public function refreshToken(){
-        $code   = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFazcxSCIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTEyOTg1ODcsImlhdCI6MTU4MzUyNjE4Nywic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.t2xwLfEIdklsQ_pEPwOSwxiYuaGiHZeNubEuSYhrOPEah6eJMfzTnXibMurygqV3NAXZSSi52db6c_dUJjfyDMafR9z0YDRPtgNCzmxyCSlpJAYv3IzfkPOC4qLkbyYI-6aG4NkD9M-Uh96IF-VEAzg5_nygFPIlqPf7671omJdhAF02llrrIrxkP3g1pCQfxB1Edz1f-iZzgY0Ob0Ni8OkSDzMPQVSzTXyw3txZmpADMuj1X-r6pK84c2Li3bslkO7uu5yldrOd5XL-IUydb-vB_3k44flXaYEgzRYl4DJVOvkhMTLrrMHRqnmAmKHLil8WvGP9AFv__AoUYBunhA';
-
-        // Exchange the auth code for an access token
-        $token = $this->apiRequest($this->tokenURL, array(
-          'grant_type'    => 'refresh_token',
-          'refresh_token' => $code
-        ));
-
-        if (isset($token['access_token'])) {
-            $_SESSION['access_token'] = $token['access_token'];
-
-            header('Location: ' . $this->serviceConnectURL);
-            die();
-        }  else if (isset($token['error'])) {
-            $_SESSION['token_details'] = $token;
-            header('Location: ' . $this->serviceConnectURL . '?error=invalid_grant');
-        }
-
-        dd($request->code);
+        echo HubstaffConnect::refreshToken();
     } //refreshToken
 
     /*connect to HUBSTAFF*/

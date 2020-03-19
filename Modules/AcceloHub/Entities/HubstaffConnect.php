@@ -39,10 +39,10 @@ class HubstaffConnect extends Model
       if($post)
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
 
-      $headers = [
-        'Accept: application/json',
-        'User-Agent: '.self::$user_agent
-      ];
+        $headers = [
+            'Accept: application/json',
+            'User-Agent: '.self::$user_agent
+        ];
 
         if(isset($post['grant_type']) && $post['grant_type'] == 'authorization_code' ){
             $client_credentials = base64_encode(config('accelohub.serviceClientID').":".config('accelohub.serviceClientSecret'));
@@ -151,7 +151,7 @@ class HubstaffConnect extends Model
         self::getToken();
 
     	$result = self::apiRequest($url);
-
+        #dd($result);
         $data = [];
         if(isset($result['error'])) {
 			if(config('accelohub.return_error')) {
@@ -389,7 +389,7 @@ class HubstaffConnect extends Model
         return $result;
     } //getTasks
 
-    public static function getActivities(){
+    public static function getProjectActivities($project_id){
         $time_slot = array();
         $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
         $time_slot['stop']  = date('Y-m-d\TH:i:sO');
@@ -399,18 +399,43 @@ class HubstaffConnect extends Model
         $result = self::getResults($url, 'activities');
 
         return $result;
-    } //getActivities
+    } //getProjectActivities
 
 
     public static function getTimesheets(){
-        $time_slot = array();
-        $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
-        $time_slot['stop']  = date('Y-m-d\TH:i:sO');
 
-        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".date('Y-m-d\TH:i:sO', strtotime("-7 days"))."&date[stop]=".date('Y-m-d\TH:i:sO');
-        
+        $start  = '2020-03-16 12:24:45';
+        $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
+        #echo "<br />DATE $start to $end <br />"; 
+        $start  = strtotime($start);
+        $end    = strtotime($end);
+        $nonbillable = $end - $start;
+
+        $timesheets = array();
+        #1 client 3 Internal
+        $class_id = 3;
+        $timesheets[] = array(
+                          'subject'     => 'Time Entry - #2619 Setup integration',
+                          'against_id'  => '2619',
+                          'task_id'     => '2619',
+                          'against_type' => 'task',
+                          'body'        => 'hubstaff to accelo via API',
+                          'owner_id'    => '13',
+                          'details'     => 'hubstaff to accelo via API',
+                          'time_allocation' => '2619',
+                          'medium'          => 'note',
+                          'nonbillable'     => $nonbillable,
+                          'visibility'      => 'all',
+                          'date_started'    => $start,
+                          //'date_logged'   => '1584361485',
+                          'class_id'        => $class_id
+                        );
+        return $timesheets;
+        dd($timesheets);
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".date('Y-m-d\T:i:sO', strtotime("-3 hrs"))."&date[stop]=".date('Y-m-d\TH:i:sO');
+        #$url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets";
+        dd(time(),strtotime($start),strtotime($end),$url);
         $result = self::getResults($url, 'timesheets');
-        dd($url, $result);
         return $result;
     } //getTimesheets    
 

@@ -59,6 +59,7 @@ Route::prefix('accelo')->group(function() {
 	Route::get('/projects/{id}/milestones', 'AcceloController@getMilestones');
 	Route::get('/tasks', 'AcceloController@getAcceloTasks');
 	Route::get('/activities', 'AcceloController@getAcceloActivities');
+	Route::get('/timesheets/post', 'AcceloController@postTimesheets');
 	Route::get('/reset', 'AcceloController@resetToken');
 
 	Route::get('/status', 'AcceloController@status');
@@ -100,6 +101,6 @@ Route::prefix('accelotohub')->group(function() {
 	Route::get('/projects/milestones/tasks', 'AcceloController@postAccelo2HubstaffProjectMilestoneTask');
 	
 
-	Route::get('/activities', 'HubstaffController@postHubstaff2AcceloActivities');
+	Route::get('/timesheets', 'HubstaffController@postHubstaff2DBTimesheets');
 
 });
