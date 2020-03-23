@@ -75,8 +75,8 @@ Route::prefix('hubstaff')->group(function() {
 	Route::get('/companies', 'HubstaffController@getClients');
 	Route::get('/projects', 'HubstaffController@getProjects');
 	Route::get('/projects/{id}', 'HubstaffController@getProject');
-	Route::get('/tasks', 'HubstaffController@getTasks');
-	Route::get('/activities', 'HubstaffController@getActivities');*/
+	Route::get('/tasks', 'HubstaffController@getTasks');*/
+	Route::get('/activities', 'HubstaffController@getActivities');
 	Route::get('/reset', 'HubstaffController@resetToken');
 
 	Route::get('/oauth', 'HubstaffController@oauth');
@@ -94,9 +94,11 @@ Route::prefix('accelotohub')->group(function() {
 	Route::get('/projects', 'AcceloController@postAccelo2HubstaffProjects'); // get accelo project and post to hubstaff immediately
 	Route::get('/tickets/schedule', 'AcceloController@postAccelo2DBTickets'); // schedule new tickets as _TICKET task
 	Route::get('/projects/tasks/schedule', 'AcceloController@postAccelo2DBProjectTasks'); // schedule project task
+	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
+
 
 	Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');
-	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks');
+	
 	#Route::get('/projects/milestones', 'AcceloController@postAccelo2HubstaffProjectMilestone');
 	Route::get('/projects/milestones/tasks', 'AcceloController@postAccelo2HubstaffProjectMilestoneTask');
 	

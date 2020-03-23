@@ -118,6 +118,16 @@ class AcceloConnect extends Model
 
 	} //oauth
 
+	public static function logCurl($post_url){
+      if (isset($_SESSION['CURL_URLS'])) {
+      	$urls = $_SESSION['CURL_URLS'];
+      	$urls[] = $post_url;
+      } else {
+      	$urls = array(); 
+      	$urls[] = $post_url;
+      }
+		$_SESSION['CURL_URLS'] = $urls;		
+	} //logCurl
 	public static function curlAccelo($params = array()){
 
 		$access_token = self::getToken();
@@ -150,7 +160,9 @@ class AcceloConnect extends Model
       #dd($response);
       $result = (json_decode($response, true));
 
-       return $result;
+      self::logCurl($post_url);
+      
+      return $result;
 	}//curlAccelo
 
 	public static function getResult($params){
@@ -207,6 +219,8 @@ class AcceloConnect extends Model
 				$data = $result;
 			}
 		}
+
+		self::logCurl($post_url);
 		return $data;
 	}//curlAccelo
 
@@ -449,7 +463,7 @@ class AcceloConnect extends Model
 		$params['data']	= $post_data;
 
       	$count = self::getResult($params);
-      	$count = $count['count'];
+      	$count = isset($count['count']) ? $count['count'] : 0;
 
       	$tasks = array();
   		$pages = ceil($count / $limit);

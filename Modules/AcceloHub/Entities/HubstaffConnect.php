@@ -4,6 +4,7 @@ namespace Modules\AcceloHub\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\AcceloHub\Entities\AcceloTasks;
+Use Carbon\Carbon;
 
 class HubstaffConnect extends Model
 {
@@ -49,7 +50,7 @@ class HubstaffConnect extends Model
             $headers[] = 'Authorization: Basic ' . $client_credentials;
         } else if(isset($post['grant_type']) && $post['grant_type'] == 'refresh_token' ){
             $client_credentials = base64_encode($post['refresh_token']);
-            $headers[] = 'Authorization: Basics ' . $client_credentials;
+            $headers[] = 'Authorization: Basic ' . $client_credentials;
         } else if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
@@ -87,6 +88,10 @@ class HubstaffConnect extends Model
       return json_decode($response, true);
     } //apiPost
 
+    public static function session_start(){
+        if (!session_id()) session_start();
+    }//setCurl
+
     public static function countCurl(){
         self::$cUrl_run =  self::$cUrl_run + 1;
     }//countCurl
@@ -108,6 +113,7 @@ class HubstaffConnect extends Model
         'User-Agent: '.self::$user_agent
       ];
 
+        self::session_start();
         if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
@@ -220,7 +226,7 @@ class HubstaffConnect extends Model
               );
         //manager company
         $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/projects";
-        $result = self::apiPost($url, $post);
+        $result = self::apiPostInitCurl($url, $post);
         if (isset($result['error']) && $result['error'] == 'invalid_token') {
             if (self::$retoken == 0) {
                 self::$retoken = 1;
@@ -272,96 +278,58 @@ class HubstaffConnect extends Model
     } //postTasks
 
     public static function postTasks($accelo_project_id, $accelo, $type='TASK'){
-        $error = ''; $success = ''; $result = ''; $migrated = '';
+        $postResult = array('success' => false, 'error' => false, 'data' => []);
 
-        $accelo_id = $accelo['id'];
-        $new_entry = false; $update_entry = false;
+        $assignee   = isset($accelo['assignee']) ? $accelo['assignee'] : $accelo['manager'];
+        $members    = AcceloMembers::get_HID_byAID($assignee);
 
-        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->first();
+        $members    = $members ? $members : config('accelohub.default_user');
 
-        if(!$entry){
-            $new_entry = true;
-        } else if($entry->status == 0) {
-            $update_entry = true;
+        $title = isset($accelo['title']) ? $accelo['title'] : '';
+        $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
+        $post = array(
+              "name"        => $type."-".$accelo['id'].": ".$title, 
+              "summary"     => $type."-".$accelo['id']." :: ".$title.$description,
+              "description" => "Accelo $type ID:".$accelo['id'].". ".$description,
+              'assignee_id' => $members 
+            );
+        $url = "https://api.hubstaff.com/v2/projects/$accelo_project_id/tasks";
+
+        /*if ($type == 'PROJECT') {
+            $style = 'style="padding-left: 50px; font-weight: bold; font-size: 15px;"';
+        } else if ($type == 'MILESTONE') {
+            $style = 'style="padding-left: 100px; font-style: italic; font-size: 14px;"';
+        } else if ($type == 'TASK') {
+            $style = 'style="padding-left: 150px;fonts-size: 11px;"';
+        } else if ($type == 'TICKET') {
+            $style = 'style="padding-left: 50px; font-weight: bold;font-style: italic;"';
         }
+        #echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';
+        echo "$url $assignee <br />"; print_r($post); return '';*/
 
-        if($new_entry || $update_entry){
+        $result = self::apiPostInitCurl($url, $post); 
 
-            $assignee   = isset($accelo['manager']) ? $accelo['manager'] : $accelo['assignee'];
-            $members    = AcceloMembers::get_HID_byAID($assignee);
-            $members    = $members ? $members : config('accelohub.default_user');
-
-            $title = isset($accelo['title']) ? $accelo['title'] : '';
-            $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
-            $post = array(
-                  "name"        => $type."-".$accelo['id'].": ".$title, 
-                  "summary"     => $type."-".$accelo['id']." :: ".$title.$description,
-                  "description" => "Accelo Ticket ID:".$accelo['id'].". ".$description,
-                  'assignee_id' => $members 
-                );
-
-            /*if ($type == 'PROJECT') {
-                $style = 'style="padding-left: 50px; font-weight: bold; font-size: 15px;"';
-            } else if ($type == 'MILESTONE') {
-                $style = 'style="padding-left: 100px; font-style: italic; font-size: 14px;"';
-            } else if ($type == 'TASK') {
-                $style = 'style="padding-left: 150px;fonts-size: 11px;"';
-            } else if ($type == 'TICKET') {
-                $style = 'style="padding-left: 50px; font-weight: bold;font-style: italic;"';
-            }
-            echo '<pre '.$style.'>'; print_r($post);echo '</pre>'; return '';*/
-            #dd($post, $accelo);
-
-            $url = "https://api.hubstaff.com/v2/projects/$accelo_project_id/tasks";
-            $result = self::apiPost($url, $post);
-            if (isset($result['error']) && $result['error'] == 'invalid_token') {
-                if (self::$retoken == 0) {
-                    self::$retoken = 1;
-                    self::refreshToken();
-                    $result = self::apiPostInitCurl($url, $post);
-                } 
-            } else {
-                self::$retoken = 0;
-            }
-            $hubstaff = $result;
-            //dd($accelo, $hubstaff, $url, $post);
-            if(isset($hubstaff['tasks'])) {
-
-                $hubstaff = $hubstaff['tasks'];
-                $accelo_id      = $accelo['id'];
-                $hubstaff_id    = $hubstaff['id'];
-                $accelo_data    = json_encode($accelo);
-                $hubstaff_data  = json_encode($hubstaff);
-
-                $hubstaff_project_id = 1;
-                if($new_entry){
-
-                    AcceloTasks::create([
-                      'project_id'          => $accelo_project_id,
-                      'accelo_task_id'      => $accelo_id,
-                      'hubstaff_task_id'    => $hubstaff_id,
-                      'acceloTask_data'     => $accelo_data,
-                      'hubstaffTask_data'   => $hubstaff_data,
-                      'type'                => $type,
-                      'status'              => 1,
-                    ]);
-
-                    $success = $hubstaff;
-
-                } else if ($update_entry) {
-                    $update_entry = AcceloTasks::find($accelo->id);
-                    $update_entry->acceloTask_data  = json_encode($accelo);
-                    $update_entry->update();
-                    $migrated = array('error' => 'Migrated', 'api' => $hubstaff);
-                }
-            } else {
-                $error = array('error' => 'Error in posting to hubstaff', 'api' => $accelo);
-            }
-
+        if (isset($result['error']) && $result['error'] == 'invalid_token') {
+            if (self::$retoken == 0) {
+                self::$retoken = 1;
+                self::refreshToken();
+                $result = self::apiPostInitCurl($url, $post);
+            } 
         } else {
-            $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
+            self::$retoken = 0;
         }
-        return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+        $hubstaff = $result;
+        //dd($accelo, $hubstaff, $url, $post);
+        if(isset($hubstaff['task'])) {
+            $postResult['success']  = true;
+            $postResult['data']     = $hubstaff['task'];
+        } else {
+            $postResult['error'] = false;
+            $post['api'] = $accelo;
+            $postResult['data']  = array('api' => $hubstaff, 'post' => $post);
+        }
+
+        return $postResult;
     } //postTasks
 
     public static function postTask($project_id, $post){
@@ -401,8 +369,33 @@ class HubstaffConnect extends Model
         return $result;
     } //getProjectActivities
 
+    public static function getActivities(){
+
+        $start  = Carbon::now()->subDays(7); 
+        $end    = Carbon::now(); 
+        #dd("$start, $end");
+        $end = date('Y-m-d\TH:i:sP');
+        $start = date('Y-m-d', strtotime("-7 days"));
+        $end = date('Y-m-d');
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/activities?time_slot[start]=".$start."&time_slot[stop]=".$end;
+
+        $result = self::getResults($url, 'activities');
+        return $result;
+    } //getActivities  
 
     public static function getTimesheets(){
+
+        $start  = Carbon::now()->subDays(7); 
+        $end    = Carbon::now(); 
+        #dd("$start, $end");
+        $end = date('Y-m-d\TH:i:sP');
+        $start = date('Y-m-d\T:i:sO', strtotime("-7 days"));
+        $start = date('Y-m-d\T:i:sO');
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".$start."&date[stop]=".$end;
+        #$url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets";
+        $result = self::getResults($url, 'timesheets');
+        dd($result,$url);
+        return $result;
 
         $start  = '2020-03-16 12:24:45';
         $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
@@ -431,12 +424,7 @@ class HubstaffConnect extends Model
                           'class_id'        => $class_id
                         );
         return $timesheets;
-        dd($timesheets);
-        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".date('Y-m-d\T:i:sO', strtotime("-3 hrs"))."&date[stop]=".date('Y-m-d\TH:i:sO');
-        #$url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets";
-        dd(time(),strtotime($start),strtotime($end),$url);
-        $result = self::getResults($url, 'timesheets');
-        return $result;
+
     } //getTimesheets    
 
 }
