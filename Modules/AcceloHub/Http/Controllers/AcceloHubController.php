@@ -3,9 +3,11 @@
 namespace Modules\AcceloHub\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use DB, Route;
+use Carbon\Carbon;
 
 use Modules\AcceloHub\Entities\AcceloMembers;
 use Modules\AcceloHub\Entities\AcceloConnect;
@@ -13,6 +15,7 @@ use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloProjects;
 use Modules\AcceloHub\Entities\AcceloTickets;
 use Modules\AcceloHub\Entities\AcceloTasks;
+use Modules\AcceloHub\Entities\HubstaffActivity;
 
 class AcceloHubController extends Controller
 {
@@ -120,7 +123,7 @@ class AcceloHubController extends Controller
      */
     public function members(Request $request)
     {
-        $limit  = $request->get('limit', env('LIMIT'));
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
@@ -144,10 +147,15 @@ class AcceloHubController extends Controller
             if (isset($accelo_data->firstname)) {
                 $user->accelo_name = "$accelo_data->firstname $accelo_data->surname";
                 $email = $accelo_data->email;
+
             }
             if (isset($hubstaff_data->name)) {
                 $user->hubstaff_name = $hubstaff_data->name;
                 $email = $hubstaff_data->email;
+
+                /*$entry = AcceloMembers::find($user->id);
+                $entry->hubstaff_full_name = $hubstaff_data->name;
+                $entry->update();*/
             }
 
             $user->email = $email;
@@ -236,8 +244,10 @@ class AcceloHubController extends Controller
             break;
           }
         }
+        $hubstaff_full_name = '';
         foreach ($members_h as $key => $member) {
           if($post['hubstaff_id'] == $member['id']) {
+            $hubstaff_full_name = $member['firstname']." ".$member['surname'];            
             $hubstaff_data    = json_encode($member);
             break;
           }
@@ -246,6 +256,7 @@ class AcceloHubController extends Controller
         $data = [
                 'accelo_member_id'      => $post['accelo_id'],
                 'hubstaff_member_id'    => $post['hubstaff_id'],
+                'hubstaff_full_name'    => $hubstaff_full_name,
                 'accelo_data'           => $accelo_data,
                 'hubstaff_data'         => $hubstaff_data,
                 'status'                => 1 ];
@@ -302,13 +313,29 @@ class AcceloHubController extends Controller
 
         $post = $request->all();
 
-        $data = ['name' => 'Fritz Darryl Roca'];
-        $accelo_data    = json_encode($data);
-        $hubstaff_data  = json_encode($data);
+        $members = $this->getAcceloHubMembers();
+        extract($members);
+
+        $accelo_data = ''; $hubstaff_data = '';
+        foreach ($members_a as $key => $member) {
+          if($post['accelo_id'] == $member['id']) {
+            $accelo_data    = json_encode($member);
+            break;
+          }
+        }
+        $hubstaff_full_name = '';
+        foreach ($members_h as $key => $member) {
+          if($post['hubstaff_id'] == $member['id']) {
+            $hubstaff_full_name = $member['name'];            
+            $hubstaff_data    = json_encode($member);
+            break;
+          }
+        }
 
         $data = [
                 'accelo_member_id'      => $post['accelo_id'],
                 'hubstaff_member_id'    => $post['hubstaff_id'],
+                'hubstaff_full_name'    => $hubstaff_full_name, 
                 'accelo_data'           => $accelo_data,
                 'hubstaff_data'         => $hubstaff_data];
 
@@ -340,7 +367,7 @@ class AcceloHubController extends Controller
 
     public function organization(Request $request)
     {
-        $limit  = $request->get('limit', env('LIMIT'));
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
@@ -385,7 +412,7 @@ class AcceloHubController extends Controller
 
     public function projects(Request $request)
     {
-        $limit  = $request->get('limit', env('LIMIT'));
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
@@ -419,6 +446,11 @@ class AcceloHubController extends Controller
                 $user->hubstaff_desc = $hubstaff_data->description;
             }
 
+            if($user->accelo_project_id == 1) {
+                $user->accelo_name  = "_TICKETS";
+                $user->hubstaff_name = "_TICKETS";
+            }
+
             return $user;
         });
 
@@ -432,7 +464,7 @@ class AcceloHubController extends Controller
 
     public function tickets(Request $request)
     {
-        $limit  = $request->get('limit', env('LIMIT'));
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
@@ -482,12 +514,12 @@ class AcceloHubController extends Controller
 
     public function tasks(Request $request)
     {
-        $limit  = $request->get('limit', env('LIMIT'));
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
 
-        $records = AcceloTasks::orderByRaw("id ASC");
+        $records = AcceloTasks::where('type', 'TASK')->orderByRaw("id ASC");
 
         if($search) {
             $records = $records->where(function($q) use($search){
@@ -514,9 +546,9 @@ class AcceloHubController extends Controller
                 $record->accelo_name  = $accelo_data->title;
                 $record->date_created = $accelo_data->date_created;
             }
-            if (isset($hubstaff_data->name)) {
-                $record->hubstaff_name = $hubstaff_data->name;
-                $record->hubstaff_desc = $hubstaff_data->description;
+            if ($record->hubstaff_task_id) {
+                $record->hubstaff_name = $hubstaff_data->summary;
+                $record->hubstaff_desc = $hubstaff_data->summary;
             }
 
             return $record;
@@ -529,6 +561,237 @@ class AcceloHubController extends Controller
                     ]);
 
     } //tasks
+
+    public function activities(Request $request)
+    {
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
+        $search = $request->get('s');
+        $sort   = $request->get('sort');
+        $by     = $request->get('by');
+
+        $records = HubstaffActivity::orderByRaw("id ASC");
+
+        if($search) {
+            $records = $records->where(function($q) use($search){
+              $q->where( 'accelo_activity_id', 'like', "%$search%" );
+              $q->orWhere('hubstaff_activity_id', 'like', "%$search%" );
+              $q->orWhere('acceloActivity_data', 'like', "%$search%" );
+              $q->orWhere('hubstaffActivity_data', 'like', "%$search%" );
+              $q->orWhere('acceloPost_data', 'like', "%$search%" );
+            });
+        }
+        
+        $pagination = $records->paginate($limit);
+
+        $records = $records->get();
+        $records->map(function ($entry) {
+            $accelo_data    = json_decode($entry->acceloPost_data);
+            $hubstaff_data  = json_decode($entry->hubstaffActivity_data);
+
+            $entry->Member        = $hubstaff_data->Member;
+            $entry->Organization  = $hubstaff_data->Organization;
+            $entry->Time_Zone     = $hubstaff_data->Time_Zone;
+            $entry->Project       = $hubstaff_data->Project;
+            $entry->Task_Summmary = $hubstaff_data->Task_Summmary;
+            $entry->Start         = Carbon::parse($hubstaff_data->Start)->format('Y-m-d g:ia');
+            $entry->Stop          = Carbon::parse($hubstaff_data->Stop)->format('Y-m-d g:ia');
+            $entry->Duration      = $hubstaff_data->Duration;
+            $entry->Manual        = $hubstaff_data->Manual;
+            $entry->Notes         = $hubstaff_data->Notes;
+            $entry->Reasons       = $hubstaff_data->Reasons;
+          return $entry;
+        });
+
+        return view('accelohub::admin.activities',[
+                    'records' => $records,
+                    'pagination' => $pagination
+                    ]);
+
+    } //activities
+
+    public function importTimesheets(Request $request){
+
+      /*$request->validate([
+        'csv' => 'required|mimes:csv'
+      ]);*/
+      $post = $request->all();
+      $file = $request->file('csv');
+
+      #$file = request()->file('csv');
+      if(!$request->hasFile('csv')){
+        return redirect('admin/accelohub/activities')
+                    ->withErrors("Invalid file.")
+                    ->withInput();        
+      }
+
+      /*//Display File Name
+      echo 'File Name: '.$file->getClientOriginalName();
+      echo '<br>';
+   
+      //Display File Extension
+      echo 'File Extension: '.$file->getClientOriginalExtension();
+      echo '<br>';
+   
+      //Display File Real Path
+      echo 'File Real Path: '.$file->getRealPath();
+      echo '<br>';*/
+      $field =
+      [
+        "Member"        => 0,
+        "Organization"  => 1,
+        "Time_Zone"     => 2,
+        "Project"       => 3,
+        "Task_Summmary" => 4,
+        "Start"         => 5,
+        "Stop"          => 6,
+        "Duration"      => 7,
+        "Manual"        => 8,
+        "Notes"         => 9,
+        "Reasons"       => 10,
+      ];
+
+      $row = 1;
+      $import = [];
+      if (($handle = fopen($file->getRealPath(), "r")) !== FALSE) {
+        $x = 0;
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+          $num = count($data);
+          #echo "<p> $num fields in line $row: <br /></p>\n";
+          if($row == 1) {
+            $h = $data;
+            foreach ($h as $key => $name) {
+              $field[] = str_replace(' ', '_', $name);
+            }
+            $field = array_flip($field);
+            $row++;
+            continue;
+          }
+          $import_row = [];
+          for ($c=0; $c < $num; $c++) {
+            $import_row[$field[$c]] = $data[$c];
+            #echo $data[$c] . " $c<br />\n";
+          }
+          if($import_row) {
+            $import[] = $import_row;
+          }
+        }
+        fclose($handle);
+      }
+
+      $new_import = []; 
+      $timesheets = []; 
+      if($import) {
+        foreach ($import as $key => $data) {
+          $new_row = [];
+          $import_data = json_encode($data);
+
+          $Task_Summmary = $data['Task_Summmary'];
+          #$task = explode("::", $Task_Summmary);
+          #dd($task);
+          $task_id = false;
+          $against_type = 'task';
+          if (preg_match('/TASK-(.*?)::/', $Task_Summmary, $match) == 1) {
+              $task_id = isset($match[1]) ? trim($match[1]) : '';
+          } else if (preg_match('/TICKET-(.*?)::/', $Task_Summmary, $match) == 1) {
+            $task_id = isset($match[1]) ? trim($match[1]) : '';
+            $against_type = 'ticket';
+          }
+
+          $user_name = $data['Member'];
+          $member = AcceloMembers::where('hubstaff_full_name', $user_name)->first();
+          $user_id = 0;
+          if($member) {
+            $user_id = $member->accelo_member_id;
+            $new_row['user_id']  = $user_id;
+          }
+
+          if($task_id) {     
+            $task_entry = AcceloTasks::where('accelo_task_id', $task_id)->first(); 
+            if(!$task_entry) { continue; }
+
+            $task = json_decode($task_entry->acceloTask_data);
+            #dd($task);
+            $task_name = $task->title;
+            $reason = (isset($data['Reasons']) && $data['Reasons']) ? " : ".$data['Reasons'] : '';   
+            $notes = $data['Notes'].$reason;
+
+            $class_id    = 3;
+
+            $start  = $data['Start'];
+            $end    = $data['Stop'];
+
+            $start  = strtotime($start);
+            $end    = strtotime($end);
+
+            #$nonbillable = $end - $start;
+            $time = $data['Duration'];
+            $timeInSeconds = strtotime($time) - strtotime('TODAY');
+
+            $timesheet = array(
+              'subject'         => "Time Entry - #{$task_id} $task_name",
+              'against_id'      => $task_id,
+              'task_id'         => $task_id,
+              'against_type'    => $against_type,
+              'body'            => $notes,
+              'owner_id'        => $user_id,
+              'details'         => $notes,
+              'time_allocation' => $task_id,
+              'medium'          => 'note', 
+              #'nonbillable'    => $nonbillable,
+              #'billable'        => $billable,
+              'visibility'      => 'all',
+              'date_started'    => $start,
+              //'date_logged'   => '1584361485',
+              'class_id'        => $class_id
+            );
+            if(isset($task->billable) && $task->billable) {
+              $timesheet['billable']     = $timeInSeconds;
+            } else {
+              $timesheet['nonbillable']  = $timeInSeconds;
+            }            
+            $timesheets[] = $timesheet;
+
+            $now = Carbon::now();
+            $new_row['user_id']               = $user_id;
+            $new_row['accelo_activity_id']    = 0;
+            $new_row['hubstaff_activity_id']  = 0;
+            $new_row['acceloActivity_data']   = '';
+            $new_row['hubstaffActivity_data'] = json_encode($data);
+            $new_row['acceloPost_data']       = json_encode($timesheet);
+            $new_row['created_at']            = $now;
+
+            /*check duplicate entry*/
+            $entry = HubstaffActivity::where('hubstaffActivity_data', $new_row['hubstaffActivity_data'])->first();
+            if(!$entry) {
+              $new_import[]        = $new_row;
+            }
+            /*check duplicate entry End*/
+
+          }/* else {
+            $new_import[]        = $data;
+          }*/
+        }
+      }
+
+      if ($new_import) {
+        $new_activities = HubstaffActivity::insert($new_import);
+        if($new_activities) {
+            return redirect()->
+                 to('admin/accelohub/activities')->
+                 withSuccess('Timesheets successfully saved!')->
+                 send();
+        } else {
+            return redirect('admin/accelohub/activities')
+                        ->withErrors("Data not save.")
+                        ->withInput();
+            #return redirect()->back()->withInput(['message' => 'Data not save']); 
+        }
+      } else {
+        return redirect('admin/accelohub/activities')
+                    ->withErrors("No data exported.")
+                    ->withInput();        
+      }
+    } //importTimesheets
 
     function ClearSessionMembers(){
       if (!session_id()) session_start();

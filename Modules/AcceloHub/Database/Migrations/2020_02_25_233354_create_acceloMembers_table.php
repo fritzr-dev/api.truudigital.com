@@ -17,6 +17,7 @@ class CreateAcceloMembersTable extends Migration
             $table->bigIncrements('id');
             $table->string('accelo_member_id')->unique();
             $table->string('hubstaff_member_id')->unique();
+            $table->longText('hubstaff_full_name')->nullable();
             $table->longText('accelo_data')->nullable();
             $table->longText('hubstaff_data')->nullable();
             $table->integer('status')->default('0');

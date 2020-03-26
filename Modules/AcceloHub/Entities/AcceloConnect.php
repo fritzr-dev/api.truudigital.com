@@ -19,6 +19,7 @@ class AcceloConnect extends Model
     static $apiCurl      = false;
     //static $limit      	 = 50;
     static $cUrl_run     = 0;
+    static $cUrl_error   = '';
 
     public function __construct()
     {
@@ -218,6 +219,8 @@ class AcceloConnect extends Model
 			if(config('accelohub.return_error')) {
 				$data = $result;
 			}
+			self::$cUrl_error = $result['meta']['message'];
+
 		}
 
 		self::logCurl($post_url);
@@ -570,14 +573,12 @@ class AcceloConnect extends Model
 
 	public static function postTimesheets($timesheets){
 
-
         $ch = curl_init();
         AcceloConnect::setCurl($ch);
         $records = array();
         foreach ($timesheets as $key => $time_log) {
-          #dd($time_log);
 
-			$post = $time_log;
+			$post = json_decode($time_log->acceloPost_data, true);
 
 			$post_data = http_build_query($post);
 
@@ -587,15 +588,23 @@ class AcceloConnect extends Model
 			$params['data']	= $post_data;
 
 			$new_records = self::MultiplecurlAccelo($params);
-			dd($new_records);
+			#echo self::$cUrl_error;
+			if(isset($new_records['id']) && $new_records['id']) {
+	        	$time_log->accelo_activity_id 	= $new_records['id'];
+	        	$time_log->acceloActivity_data 	= json_encode($new_records);
+	        	$time_log->status 				= 1;
+	        	$time_log->update();			
+			}
 			$records = array_merge($records, $new_records);          
+			#dd($post, $new_records);
         }
         curl_close($ch);     
 
+        return $records;
 
     /*$start  = '2020-03-16 12:24:45';
     $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
-echo "<br />DATE $start to $end <br />"; 
+	echo "<br />DATE $start to $end <br />"; 
     $start  = strtotime($start);
     $end  = strtotime($end);
     $nonbillable = $end - $start;

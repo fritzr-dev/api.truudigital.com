@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 
 use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloConnect;
+use Modules\AcceloHub\Entities\HubstaffActivity;
 
 class HubstaffController extends Controller
 {
@@ -145,11 +146,19 @@ class HubstaffController extends Controller
         return response()->json($result);
     } //getTimesheets    
 
+    function getNotes(){
+
+        $result = HubstaffConnect::getNotes();
+
+        return response()->json($result);
+    } //getNotes    
+
     function postHubstaff2DBTimesheets(){
 
-        $time_logs = HubstaffConnect::getTimesheets();
-        $new_logs = AcceloConnect::postTimesheets($time_logs);   
-        
+      $time_logs = HubstaffActivity::where('status', 0)->limit(config('accelohub.cLimit'))->get();
+
+      $new_logs = AcceloConnect::postTimesheets($time_logs);   
+      
         #return response()->json($result);
     } //postHubstaff2DBTimesheets
     

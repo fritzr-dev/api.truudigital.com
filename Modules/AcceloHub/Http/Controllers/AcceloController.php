@@ -13,6 +13,7 @@ use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloTickets;
 use Modules\AcceloHub\Entities\AcceloTasks;
+use Modules\AcceloHub\Entities\HubstaffActivity;
 
 class AcceloController extends Controller
 {
@@ -86,7 +87,7 @@ class AcceloController extends Controller
       $accelo_project_id = 290;
       $records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
       return $records;
-      $records = AcceloProjects::where('status', 0)->limit(10)->get();
+      $records = AcceloProjects::where('status', 0)->limit(config('accelohub.cLimit'))->get();
       #$records = AcceloProjects::get();#->limit(1);
       return $records;
     } //getAcceloDBProjects
@@ -102,7 +103,8 @@ class AcceloController extends Controller
        });          
 
       return $records;*/
-      $records = AcceloTasks::where('accelo_project_id','!=', 1)->where('status', 0)->limit(10)->get()->map(function($task){
+      
+      $records = AcceloTasks::where('accelo_project_id','!=', 1)->where('status', 0)->limit(config('accelohub.cLimit'))->get()->map(function($task){
           $project = AcceloProjects::where('id', $task->project_id)->first();
           $task['accelo_project_id']    = $project->accelo_project_id;
           $task['hubstaff_project_id']  = $project->hubstaff_project_id;
@@ -458,8 +460,9 @@ class AcceloController extends Controller
     } //postAccelo2HubstaffProjectMilestones
 
     public function postTimesheets(){
-      $data = '';
-      $result  = AcceloConnect::postTimesheets($data);
+
+      $timesheets   = HubstaffActivity::where('status', 0)->limit(config('accelohub.cLimit'))->get();
+      $result       = AcceloConnect::postTimesheets($timesheets);
 
       return response()->json($result);
     } //getAcceloCompanies

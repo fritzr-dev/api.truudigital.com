@@ -8,25 +8,15 @@ Use Carbon\Carbon;
 
 class HubstaffConnect extends Model
 {
-    //public static $serviceClientID        = 'vaQZ3O3oNd_fATpLFlgZPupWFkQOIUaHv895Vna_cMs';
-    //public static $serviceClientSecret    = 'ji_KF70MAQBJNIMlhABGZnzcLViVtb9MrGA1d58ay2nWnJi1byUmeJwUeBr5sJKuMJ2Pc9pt2vREu8AMkfdPQw';
-    //public static $serviceRedirectURL     = 'http://localhost:8000/hubstaff/oauth';
-    //public static $serviceConnectURL      = 'http://localhost:8000/hubstaff/connect';
-    // This is the endpoint our server will request an access token from
-    //public static $tokenURL   = 'https://account.hubstaff.com/access_tokens';
-    // This is the hubstaff base URL we can use to make authenticated API requests
-    //public static $apiURLBase       = 'https://api.hubstaff.com/v2/';
-    //public static $organization_id  = 242946;
-    //public static $default_user     = 3895328;
+
     static $return_error            = false;
     static $cUrl_run    = 0;
     static $postTask    = 0;
 
-    //static $personal_access_tokens  = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFbTcxbSIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTIxNzE3NDEsImlhdCI6MTU4NDM5NTc0MSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.s7a2BKM4XkLhgnkQkWfTb7NWd0pju2x0Rk--oKoW81mJkU27daLDEUGW8fLDZ9WWo5kFFTQAMYb6p2RQx9cuHBttq00a9xSBzh8mEIlyDL3v5Babry_jDNasRBP-IskA74wI3efpOY3CNb9iPoSlJBunsTEZQjA7W8UBMwCMrZ-QzC7olF55XXQOWFdEzDNzWBgYU1Reda3NFbwSj-QBRb1yZS8QsOzjcJ7QtdpS7yjJoAYT2jr5DtrGLYrXoQIx8aQsp62Of11dFZDXtc51puqsAEhfYLIhNd5ECAiZZIs9Omvw-u3gzDF3cWpEv9E3_p7wLzcshNsgEE91eY-E5Q';
-
     static $retoken   = 0;
     static $user_agent = 'TruuDigital';
     static $apiCurl    = false;
+    static $lastCurl   = [];
 
     public function __construct()
     {
@@ -121,6 +111,7 @@ class HubstaffConnect extends Model
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
+      self::$lastCurl = $response;
       return json_decode($response, true);
     } //apiRequest
 
@@ -157,9 +148,20 @@ class HubstaffConnect extends Model
         self::getToken();
 
     	$result = self::apiRequest($url);
+        /*check API ERROR*/
+        if (isset($result['error']) && $result['error'] == 'invalid_token') {
+            if (self::$retoken == 0) {
+                self::$retoken = 1;
+                self::refreshToken();
+                $result = self::apiRequest($url);
+            } 
+        } else {
+            self::$retoken = 0;
+        }        
+        /*check API ERROR END*/
         #dd($result);
         $data = [];
-        if(isset($result['error'])) {
+        if(isset($result['error'])) {            
 			if(config('accelohub.return_error')) {
             	$data = $result;
 			}
@@ -169,6 +171,47 @@ class HubstaffConnect extends Model
 
         return $data;
     }
+
+    public static function getPageResults($url, $list, $next_page_start_id=''){
+
+        self::getToken();
+        #$url = $url."&page_limit=50";
+        $url = $next_page_start_id ? $url."&page_start_id=$next_page_start_id" : $url;
+        #echo "$url <br />:";
+        $result = self::apiRequest($url);
+        /*check API ERROR*/
+        if (isset($result['error']) && $result['error'] == 'invalid_token') {
+            if (self::$retoken == 0) {
+                self::$retoken = 1;
+                self::refreshToken();
+                $result = self::apiRequest($url);
+            } 
+        } else {
+            self::$retoken = 0;
+        }        
+        /*check API ERROR END*/
+        #dd($result);
+        $data = [];
+        if(isset($result['error'])) {            
+            if(config('accelohub.return_error')) {
+                $data = $result;
+            }
+        } else {
+            if(isset($result['pagination'])) {
+                $next_page_start_id = $result['pagination']['next_page_start_id'];
+                unset($result['pagination']);
+                $data = isset($result[$list]) ? $result[$list] : reset($result);
+                // get new page
+                $page_records = self::getPageResults($url, $list, $next_page_start_id);
+
+                $data = array_merge($data, $page_records);
+            } else {
+                $data = isset($result[$list]) ? $result[$list] : reset($result);
+            }
+        }
+
+        return $data;
+    }  //getPageResults  
 
     public static function getUser($user_id){
 
@@ -319,7 +362,7 @@ class HubstaffConnect extends Model
             self::$retoken = 0;
         }
         $hubstaff = $result;
-        //dd($accelo, $hubstaff, $url, $post);
+        #dd($accelo, $hubstaff, $url, $post);
         if(isset($hubstaff['task'])) {
             $postResult['success']  = true;
             $postResult['data']     = $hubstaff['task'];
@@ -383,19 +426,150 @@ class HubstaffConnect extends Model
         return $result;
     } //getActivities  
 
+    public static function getNotes(){
+
+        $start  = Carbon::now()->subDays(7); 
+        $end    = Carbon::now(); 
+        $start  = "2020-03-22";
+        $end    = "2020-03-28";
+        
+        $start_time     = date(DATE_ISO8601, strtotime($start));
+        $stop_time      = date(DATE_ISO8601, strtotime($end));
+
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/notes?time_slot[start]=".$start_time."&time_slot[stop]=".$stop_time;
+
+        $result = self::getResults($url, 'notes');
+        dd("NOTES", $url, $result);
+        return $result;
+    } //getNotes  
+
     public static function getTimesheets(){
 
         $start  = Carbon::now()->subDays(7); 
         $end    = Carbon::now(); 
-        #dd("$start, $end");
-        $end = date('Y-m-d\TH:i:sP');
-        $start = date('Y-m-d\T:i:sO', strtotime("-7 days"));
-        $start = date('Y-m-d\T:i:sO');
-        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".$start."&date[stop]=".$end;
-        #$url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets";
-        $result = self::getResults($url, 'timesheets');
-        dd($result,$url);
+
+        $start  = "2020-03-26";
+        $end    = "2020-03-26";
+        $start_time     = date(DATE_ISO8601, strtotime($start));
+        $stop_time      = date(DATE_ISO8601, strtotime($end));
+        echo "$start $end <br /> <br />";
+
+        echo $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/timesheets?date[start]=".$start_time."&date[stop]=".$stop_time;
+        $org_timesheets = self::getPageResults($url, 'timesheets');
+        $timesheets_users = [];
+        $timesheets = [];
+        $user_ids   = [];
+        $timesheets_ids   = [];
+        foreach ($org_timesheets as $key => $data) {
+            $data['activities'] = false;
+            $timesheets[$data['id']] = $data;
+            $user_id = $data['user_id'];
+            $timesheets_users[$user_id][$data['id']] = $data;
+            $timesheets_ids[] = $data['id'];
+        }
+        foreach ($timesheets_users as $user_id => $user) {
+            $user_ids[] = $user_id;
+        }
+
+        $Cuser_ids = implode(",", $user_ids);
+        $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/activities?time_slot[start]=".$start."&time_slot[stop]=".$end."&user_ids=$Cuser_ids";
+        $activities = self::getPageResults($url, 'activities');    
+
+        /*$url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/notes?time_slot[start]=".$start."&time_slot[stop]=".$end."&user_ids=$Cuser_ids";
+        $notes = self::getPageResults($url, 'notes');  
+        $timesheet_notes = [];
+        foreach ($notes as $key => $note) {
+
+            $timesheet_id = $activity['timesheet_id'];
+            $timesheet_activities[$timesheet_id][] = $activity;
+        } */
+        /*
+        foreach ($activities as $key => $activity) {
+            $timesheet_id = $activity['timesheet_id'];
+            if(isset($timesheets[$timesheet_id])) {
+
+                $t_activities = $timesheets[$timesheet_id]['activities'];
+                $t_activities[] = $activity;
+                $timesheets[$timesheet_id]['activities'] = $t_activities;
+            } else {
+                $timesheets[$timesheet_id]['activities'] = "no activity";
+            }
+            $timesheet_activities[$timesheet_id][] = $activity;
+        }*/
+
+        $timesheet_activities = [];
+        foreach ($activities as $key => $activity) {
+
+            $timesheet_id = $activity['timesheet_id'];
+            $timesheet_activities[$timesheet_id][] = $activity;
+        }  
+
+        foreach ($timesheets_users as $user_id => $user) {
+            foreach ($user as $t_id => $sheet) {
+                if (isset($timesheet_activities[$t_id])) {
+                    $timesheets_users[$user_id][$t_id]['activities'] = $timesheet_activities[$t_id];
+                }
+            }
+        }
+
+        /*$table = '';
+        foreach ($timesheet_activities as $timesheet_id => $activities) {
+            $row = '';
+            foreach ($activities as $key => $values) {
+                $td = '';
+                $head = '';
+                foreach ($values as $key => $value) {
+                    $head .= "<th>$key</th>";
+                    $td .= "<td>$value</td>";
+                }
+                $row .= "<tr>$td</tr>";
+                $head = "<tr>$head</tr>";
+            }
+            $table .= "<h3>$timesheet_id</h3>
+                    <table cellspacing='2' cellpadding='2' border='1'>
+                        $head
+                        $row   
+                    </table>";
+        }*/
+        $table = '';
+        $row = '';
+        foreach ($org_timesheets as $key => $values) {
+            $td = '';
+            $head = '';
+            foreach ($values as $key => $value) {
+                $head .= "<th>$key</th>";
+                $td .= "<td>$value</td>";
+            }
+            $row .= "<tr>$td</tr>";
+            $head = "<tr>$head</tr>";
+        }
+        $table .= "
+                <table cellspacing='2' cellpadding='2' border='1'>
+                    $head
+                    $row   
+                </table>";
+        echo $table;
+        $table = '';
+        $row = '';
+        foreach ($activities as $key => $values) {
+            $td = '';
+            $head = '';
+            foreach ($values as $key => $value) {
+                $head .= "<th>$key</th>";
+                $td .= "<td>$value</td>";
+            }
+            $row .= "<tr>$td</tr>";
+            $head = "<tr>$head</tr>";
+        }
+        $table .= "
+                <table cellspacing='2' cellpadding='2' border='1'>
+                    $head
+                    $row   
+                </table>";
+        echo $table;
+        dd("USERS LOGS ",$timesheets_users, "ACTIVITIES GROUP BY timesheet ID", $timesheet_activities);
         return $result;
+
 
         $start  = '2020-03-16 12:24:45';
         $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));

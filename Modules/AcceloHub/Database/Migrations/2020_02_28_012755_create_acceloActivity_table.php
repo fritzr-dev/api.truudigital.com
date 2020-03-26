@@ -15,10 +15,12 @@ class CreateAcceloActivityTable extends Migration
     {
         Schema::create('acceloActivity', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->bigInteger('user_id');
             $table->string('accelo_activity_id');
             $table->string('hubstaff_activity_id');
             $table->longText('acceloActivity_data')->nullable();
             $table->longText('hubstaffActivity_data')->nullable();  
+            $table->longText('acceloPost_data')->nullable();  
             $table->integer('status')->default('0');           
             $table->timestamps();
         });
