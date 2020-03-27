@@ -24,6 +24,10 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
+        //https://nwidart.com/laravel-modules/v4/advanced-tools/module-console-commands
+        $this->commands([
+            \Modules\AcceloHub\Console\AcceloProject::class,
+        ]);        
     }
 
     /**

@@ -1,0 +1,80 @@
+<?php
+
+namespace Modules\AcceloHub\Console;
+
+use Illuminate\Console\Command;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
+
+class AcceloProject extends Command
+{
+    /**
+     * The console command name.
+     *
+     * @var string
+     */
+    protected $signature = 'accelohub:projects {type=projects}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Get Accelo project and post to Hubstaff Projects.';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $type = $this->argument('type');
+        if($type == 'projects') {
+            $this->info('Get All Accelo Project and Post to Hubstaff and save to DB');
+        } else if($type == 'tasks') {
+            $this->info('Get All Accelo Project Tasks and save to DB');
+        } else if($type == 'tickets') {
+            $this->info('Get All Accelo Tickets and save to DB');
+        } else if($type == 'tasks2Hubstaff') {
+            $this->info('Post all Accelo Tasks saved in DB to Hubstaff');
+        } else if($type == 'timesheet2Accello') {
+            $this->info('Post all timesheets to Accelo');
+        }
+        
+    }
+
+    /**
+     * Get the console command arguments.
+     *
+     * @return array
+     */
+    protected function getArguments()
+    {
+        return [
+            ['example', InputArgument::REQUIRED, 'An example argument.'],
+        ];
+    }
+
+    /**
+     * Get the console command options.
+     *
+     * @return array
+     */
+    protected function getOptions()
+    {
+        return [
+            ['example', null, InputOption::VALUE_OPTIONAL, 'An example option.', null],
+        ];
+    }
+}
