@@ -16,6 +16,9 @@ class CreateAcceloSyncLogsTable extends Migration
         Schema::create('acceloSyncLogs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('module');
+            $table->longText('error')->nullable();
+            $table->longText('success')->nullable();
+            $table->longText('result')->nullable();
             $table->timestamps();
         });
     }

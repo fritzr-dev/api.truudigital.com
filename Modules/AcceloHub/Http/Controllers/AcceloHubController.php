@@ -16,6 +16,7 @@ use Modules\AcceloHub\Entities\AcceloProjects;
 use Modules\AcceloHub\Entities\AcceloTickets;
 use Modules\AcceloHub\Entities\AcceloTasks;
 use Modules\AcceloHub\Entities\HubstaffActivity;
+use Modules\AcceloHub\Entities\AcceloSync;
 
 class AcceloHubController extends Controller
 {
@@ -39,7 +40,7 @@ class AcceloHubController extends Controller
               <li'. (\Request::is('admin/accelohub/tickets') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/tickets').'"><i class="fa fa-circle-o"></i> Tickets</a></li>
               <li'. (\Request::is('admin/accelohub/tasks') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/tasks').'"><i class="fa fa-circle-o"></i>Tasks</a></li>
               <li'. (\Request::is('admin/accelohub/activities') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/activities').'"><i class="fa fa-circle-o"></i> Members Activities</a></li>
-              <li'. (\Request::is('admin/accelohub/logs') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/logs').'"><i class="fa fa-circle-o"></i> Sync Logs</a></li>' : '' ) .'
+              <li'. (\Request::is('admin/accelohub/logs') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/logs').'"><i class="fa fa-circle-o"></i> Migration Logs</a></li>' : '' ) .'
             </ul>
           </li>';
         }
@@ -694,7 +695,7 @@ class AcceloHubController extends Controller
               $task_id = isset($match[1]) ? trim($match[1]) : '';
           } else if (preg_match('/TICKET-(.*?)::/', $Task_Summmary, $match) == 1) {
             $task_id = isset($match[1]) ? trim($match[1]) : '';
-            $against_type = 'ticket';
+            #$against_type = 'ticket';
           }
 
           $user_name = $data['Member'];
@@ -792,6 +793,35 @@ class AcceloHubController extends Controller
                     ->withInput();        
       }
     } //importTimesheets
+
+    public function migrationLogs(Request $request)
+    {
+        $limit  = $request->get('limit', config('accelohub.pLimit'));
+        $search = $request->get('s');
+        $sort   = $request->get('sort');
+        $by     = $request->get('by');
+
+        $records = AcceloSync::orderByRaw("id ASC");
+
+        
+        $pagination = $records->paginate($limit);
+
+        $records = $records->get();
+        $records->map(function ($entry) {
+            $error    = json_decode($entry->acceloPost_data);
+            $success  = json_decode($entry->hubstaffActivity_data);
+
+            $entry->count_error      = $error ? count($error) : 0;
+            $entry->count_success    = $success ? count($success) : 0;
+          return $entry;
+        });
+
+        return view('accelohub::admin.migrationlogs',[
+                    'records' => $records,
+                    'pagination' => $pagination
+                    ]);
+
+    } //AcceloSync
 
     function ClearSessionMembers(){
       if (!session_id()) session_start();

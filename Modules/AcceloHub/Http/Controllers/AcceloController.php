@@ -14,6 +14,7 @@ use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloTickets;
 use Modules\AcceloHub\Entities\AcceloTasks;
 use Modules\AcceloHub\Entities\HubstaffActivity;
+use Modules\AcceloHub\Entities\AcceloSync;
 
 class AcceloController extends Controller
 {
@@ -84,9 +85,9 @@ class AcceloController extends Controller
 
     public function getAcceloDBProjects(){
       #developer demo
-      $accelo_project_id = 290;
+      /*$accelo_project_id = 290;
       $records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
-      return $records;
+      return $records;*/
       $records = AcceloProjects::where('status', 0)->limit(config('accelohub.cLimit'))->get();
       #$records = AcceloProjects::get();#->limit(1);
       return $records;
@@ -159,7 +160,10 @@ class AcceloController extends Controller
         } // foreach
 
       }
-      return response()->json( array('success' => $success, 'error' => $error, 'migrated' => $migrated ) );
+      $result = array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+      
+      AcceloSync::newLog( 'ticket2DB', $result );       
+      return response()->json( $result  );
     } //postAccelo2HubstaffTickets
 
     public function postAccelo2HubstaffTickets(){
@@ -239,7 +243,9 @@ class AcceloController extends Controller
         }
       }//foreach
 
-      return response()->json( array('success' => $success, 'error' => $error, 'migrated' => $migrated ) );
+      $result = array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+      AcceloSync::newLog( 'projects', $result );
+      return response()->json( $result );
     } //postAccelo2HubstaffProjects
 
     public function postAccelo2HubstaffProjectTasks(){
@@ -276,7 +282,10 @@ class AcceloController extends Controller
       }
       /*project task*/
       //echo $curl = AcceloConnect::$cUrl_run + HubstaffConnect::$cUrl_run;
-      return response()->json( array('success' => $success, 'error' => $error) );
+      $result = array('success' => $success, 'error' => $error );
+      AcceloSync::newLog( 'task2Hubstaff', $result ); 
+           
+      return response()->json( $result );
     } //postAccelo2HubstaffProjectTasks
 
     public function postAccelo2HubstaffProjectMilestone(){
@@ -398,7 +407,9 @@ class AcceloController extends Controller
 
       }
 
-      return response()->json( array('CURL POST'=> HubstaffConnect::$cUrl_run, 'success' => $success, 'error' => $error ) );
+      $result = array('CURL POST'=> HubstaffConnect::$cUrl_run, 'success' => $success, 'error' => $error );
+      AcceloSync::newLog( 'task2DB', $result );      
+      return response()->json( $result );
     } //postAccelo2DBProjectTasks
 
     public function postAccelo2HubstaffProjectMilestoneTask(){
@@ -459,13 +470,13 @@ class AcceloController extends Controller
       return response()->json( array('CURL POST'=> HubstaffConnect::$cUrl_run, 'success' => $success, 'error' => $error ) );
     } //postAccelo2HubstaffProjectMilestones
 
-    public function postTimesheets(){
+    /*public function postHubstaff2DBTimesheets(){
 
       $timesheets   = HubstaffActivity::where('status', 0)->limit(config('accelohub.cLimit'))->get();
+      dd('ddd');
       $result       = AcceloConnect::postTimesheets($timesheets);
-
       return response()->json($result);
-    } //getAcceloCompanies
+    } //getAcceloCompanies*/
 
     public function resetToken(){
       echo $result  = AcceloConnect::resetToken();

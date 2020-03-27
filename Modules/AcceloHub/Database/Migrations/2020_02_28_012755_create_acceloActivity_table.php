@@ -21,6 +21,7 @@ class CreateAcceloActivityTable extends Migration
             $table->longText('acceloActivity_data')->nullable();
             $table->longText('hubstaffActivity_data')->nullable();  
             $table->longText('acceloPost_data')->nullable();  
+            $table->longText('api_error')->nullable();  
             $table->integer('status')->default('0');           
             $table->timestamps();
         });

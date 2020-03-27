@@ -43,7 +43,7 @@ Route::group([
 	      'uses' => 'AcceloHubController@importTimesheets',
 	      'as' => 'activities.import'
 	    ]);
-	    Route::get('/organization', 'AcceloHubController@organization');
+	    Route::get('/logs', 'AcceloHubController@migrationLogs');
 
 	});
 
@@ -114,7 +114,7 @@ Route::prefix('accelotohub')->group(function() {
 	Route::get('/projects/tasks/schedule', 'AcceloController@postAccelo2DBProjectTasks');
 	/*
 		1. get accelo task from DB
-		2. post data to hubstaff projects */		
+		2. post data to hubstaff projects task */		
 	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks'); 
 
 

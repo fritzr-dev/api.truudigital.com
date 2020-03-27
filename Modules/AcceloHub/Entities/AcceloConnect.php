@@ -20,6 +20,7 @@ class AcceloConnect extends Model
     //static $limit      	 = 50;
     static $cUrl_run     = 0;
     static $cUrl_error   = '';
+    static $lastCurl   = [];
 
     public function __construct()
     {
@@ -208,10 +209,8 @@ class AcceloConnect extends Model
 		  ));
 
       $response = curl_exec($curl);
-      self::$cUrl_run =  self::$cUrl_run + 1;
-
       $result = (json_decode($response, true));
-      #dd($result);
+      #dd($post_url, $result);
 		$data = [];
 		if(isset($result['meta']['status']) && $result['meta']['status'] == 'ok') {
 				$data = $result['response'];
@@ -220,10 +219,12 @@ class AcceloConnect extends Model
 				$data = $result;
 			}
 			self::$cUrl_error = $result['meta']['message'];
-
 		}
 
+        self::$cUrl_run =  self::$cUrl_run + 1;
 		self::logCurl($post_url);
+		self::$lastCurl = $result;
+
 		return $data;
 	}//curlAccelo
 
@@ -572,7 +573,7 @@ class AcceloConnect extends Model
 	} //getTimers
 
 	public static function postTimesheets($timesheets){
-
+		$error = []; $success = [];
         $ch = curl_init();
         AcceloConnect::setCurl($ch);
         $records = array();
@@ -580,6 +581,7 @@ class AcceloConnect extends Model
 
 			$post = json_decode($time_log->acceloPost_data, true);
 
+			#$post['against_type'] = 'task';
 			$post_data = http_build_query($post);
 
 			$params 		= array();
@@ -589,28 +591,38 @@ class AcceloConnect extends Model
 
 			$new_records = self::MultiplecurlAccelo($params);
 			#echo self::$cUrl_error;
+			#dd(self::$lastCurl);
+
 			if(isset($new_records['id']) && $new_records['id']) {
 	        	$time_log->accelo_activity_id 	= $new_records['id'];
 	        	$time_log->acceloActivity_data 	= json_encode($new_records);
 	        	$time_log->status 				= 1;
-	        	$time_log->update();			
+	        	$time_log->update();	
+	        	$success[] = $new_records;		
+			} else {
+	        	$time_log->api_error = self::$cUrl_error;
+	        	$time_log->update();				
+				$error[] = array('error' => 'Error in posting timesheet:: '.self::$cUrl_error, 'api' => $post);
 			}
-			$records = array_merge($records, $new_records);          
+			#$records = array_merge($records, $new_records);          
 			#dd($post, $new_records);
         }
         curl_close($ch);     
+        #dd($records);
+        #dd(array('CURL POST'=> self::$cUrl_run, 'success' => $success, 'error' => $error ));
+        $apiResult = array('CURL POST'=> self::$cUrl_run, 'success' => $success, 'error' => $error );
 
-        return $records;
-
-    /*$start  = '2020-03-16 12:24:45';
-    $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
-	echo "<br />DATE $start to $end <br />"; 
-    $start  = strtotime($start);
-    $end  = strtotime($end);
-    $nonbillable = $end - $start;
-    dd($nonbillable);
-    /*echo "non billable: $nonbillable"."<br />LOGS $start to $end <br />"; 
-    $nonbillable = 7 * 3600;*
+        return $apiResult;
+    
+	    /*$start  = '2020-03-16 12:24:45';
+	    $end    = date('Y-m-d H:i:s',strtotime('+7 hours',strtotime($start)));
+		echo "<br />DATE $start to $end <br />"; 
+	    $start  = strtotime($start);
+	    $end  = strtotime($end);
+	    $nonbillable = $end - $start;
+	    dd($nonbillable);
+	    /*echo "non billable: $nonbillable"."<br />LOGS $start to $end <br />"; 
+	    $nonbillable = 7 * 3600;*
 
       	$timesheets = array();
       	#1 client 3 Internal

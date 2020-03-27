@@ -400,6 +400,7 @@ class HubstaffConnect extends Model
         return $result;
     } //getTasks
 
+    /*developer use*/
     public static function getProjectActivities($project_id){
         $time_slot = array();
         $time_slot['start'] = date('Y-m-d\TH:i:sO', strtotime("-1 months"));
