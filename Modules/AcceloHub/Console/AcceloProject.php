@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
+use Modules\AcceloHub\Entities\AcceloSchedule;
+
 class AcceloProject extends Command
 {
     /**
@@ -41,6 +43,7 @@ class AcceloProject extends Command
     {
         $type = $this->argument('type');
         if($type == 'projects') {
+            $result = AcceloSchedule::projects();
             $this->info('Get All Accelo Project and Post to Hubstaff and save to DB');
         } else if($type == 'tasks') {
             $this->info('Get All Accelo Project Tasks and save to DB');
@@ -49,6 +52,8 @@ class AcceloProject extends Command
         } else if($type == 'tasks2Hubstaff') {
             $this->info('Post all Accelo Tasks saved in DB to Hubstaff');
         } else if($type == 'timesheet2Accello') {
+            $result = AcceloSchedule::timesheets();
+            #dd($result);
             $this->info('Post all timesheets to Accelo');
         }
         

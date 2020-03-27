@@ -10,6 +10,7 @@ use Modules\AcceloHub\Entities\HubstaffConnect;
 use Modules\AcceloHub\Entities\AcceloConnect;
 use Modules\AcceloHub\Entities\HubstaffActivity;
 use Modules\AcceloHub\Entities\AcceloSync;
+use Modules\AcceloHub\Entities\AcceloSchedule;
 
 class HubstaffController extends Controller
 {
@@ -155,12 +156,9 @@ class HubstaffController extends Controller
     } //getNotes    
 
     function postHubstaff2DBTimesheets(){
-
-      $time_logs = HubstaffActivity::where('status', 0)->limit(config('accelohub.cLimit'))->get();
-
-      $result = AcceloConnect::postTimesheets($time_logs);   
-
-      AcceloSync::newLog( 'task2DB', $result );      
+      
+      $result = AcceloSchedule::timesheets();
+  
       return response()->json( $result );
     } //postHubstaff2DBTimesheets
     
