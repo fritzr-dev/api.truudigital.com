@@ -4,6 +4,8 @@ namespace Modules\AcceloHub\Entities;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\AcceloHub\Entities\AcceloTasks;
+use Modules\AcceloHub\Entities\AcceloSchedule;
+
 Use Carbon\Carbon;
 
 class HubstaffConnect extends Model
@@ -89,31 +91,43 @@ class HubstaffConnect extends Model
         self::$apiCurl = $ch;
     }//setCurl
 
-    public static function apiPostInitCurl($url, $post=FALSE, $headers=array()) {
+    public static function apiPostInitCurl($url, $post=FALSE, $type='') {
       #$ch = curl_init($url);
+        $headers = [
+        'Accept: application/json',
+        'User-Agent: '.self::$user_agent
+        ];
+
       $ch = self::$apiCurl;
       curl_setopt($ch, CURLOPT_URL, $url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
-      if($post)
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
-
-      $headers = [
+      if($type == 'project'){
+        $headers = [
+        'Content-Type: application/json',
         'Accept: application/json',
         'User-Agent: '.self::$user_agent
-      ];
+        ];
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+      } else {
+          if($post)
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+      }
 
         self::session_start();
         if(isset($_SESSION['access_token'])) {
             $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
         }
 
-      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
       self::$lastCurl = $response;
       return json_decode($response, true);
-    } //apiRequest
+    } //apiPostInitCurl
 
     /*Refresh token HUBSTAFF*/
     public static function refreshToken(){
@@ -255,27 +269,39 @@ class HubstaffConnect extends Model
 
     public static function postProject($accelo){
 
-        $manager = $accelo['manager'];
-        $manager = AcceloMembers::get_HID_byAID($manager);
-        $manager = $manager ? $manager : config('accelohub.default_user');
+        
+        $members = AcceloSchedule::$hubstaff_members;
 
-        $members = array();
-        $members[] = array("user_id" => $manager, "role"=> "manager");
+        /*$manager = $accelo['manager'];
+        $manager = AcceloMembers::get_HID_byAID($manager);
+        if($manager) {
+            $members[] = array("user_id" => $manager, "role"=> "manager");
+        }*/
+        #$manager = $manager ? $manager : config('accelohub.default_user');
+        #$members = array();
+        #$members[] = array("user_id" => config('accelohub.default_user'), "role"=> "user");
+
+        #dd($members);
+
         $post = array(
                 "name"          => "PRJ-".$accelo['id']." ".$accelo['title'], 
                 "description"   => "Accelo ID:".$accelo['id'],
-                //"members"       => $members,
-                "client_id"     => config('accelohub.default_client')
+                "client_id"     => config('accelohub.default_client'),
+                "members"       => $members
               );
+        #dd($post);
         //manager company
         $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/projects";
-        $result = self::apiPostInitCurl($url, $post);
-        if (isset($result['error']) && $result['error'] == 'invalid_token') {
-            if (self::$retoken == 0) {
-                self::$retoken = 1;
-                self::refreshToken();
-                $result = self::apiPostInitCurl($url, $post);
-            } 
+        $result = self::apiPostInitCurl($url, $post, 'project');
+        if (isset($result['error'])) {
+            if ($result['error'] == 'invalid_token') {
+                if (self::$retoken == 0) {
+                    self::$retoken = 1;
+                    self::refreshToken();
+                    $result = self::apiPostInitCurl($url, $post, 'project');
+                } 
+            }
+            $result['post'] = $post;
         } else {
             self::$retoken = 0;
         }
@@ -310,6 +336,7 @@ class HubstaffConnect extends Model
             }
         } else if($entry->status == 0) {
             $update_entry = AcceloTasks::find($entry->id);
+            $update_entry->type             = $type;
             $update_entry->acceloTask_data  = json_encode($accelo);
             $update_entry->update();
             $migrated = array('error' => 'Pending Migration', 'api' => $accelo);

@@ -54,12 +54,14 @@
             <div class="box-body table-responsive no-padding">
               <table class="table table-hover">
                 <tr>
+                  <th>Module</th>
                   <th>Date Migrated</th>
                   <th>Success</th>
                   <th>Error</th>
                 </tr>
                 @forelse($records as $record)
                 <tr>
+                  <td>{{ $record->module }}</td>
                   <td title="{{ $record->created_at->diffForHumans() }}">{{ $record->created_at }}</td>
                   <td><span class="label label-success">{{ $record->count_success }}</span></td>
                   <td><span class="label label-warning">{{ $record->count_error }}</span></td>

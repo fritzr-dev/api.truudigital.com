@@ -16,7 +16,7 @@ class AcceloProjects extends Model
 
     public static function getAcceloDBProjects(){
       #developer demo
-      /*$accelo_project_id = 290;
+      /*$accelo_project_id = 299;
       $records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
       return $records;*/
       $records = AcceloProjects::where('status', 0)->limit(config('accelohub.cLimit'))->get();

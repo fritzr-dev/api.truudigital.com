@@ -116,6 +116,7 @@ Route::prefix('accelotohub')->group(function() {
 		1. get accelo task from DB
 		2. post data to hubstaff projects task */		
 	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks'); 
+	Route::get('/projects/tasks/tickets', 'AcceloController@postAccelo2HubstaffProjectTasksTickets'); 
 
 
 	#Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');

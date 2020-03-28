@@ -132,9 +132,14 @@ class AcceloController extends Controller
 
     public function postAccelo2HubstaffProjectTasks(){
 
-      $result = AcceloSchedule::postTasks();           
+      $result = AcceloSchedule::postProjectTasks();           
       return response()->json( $result );
     } //postAccelo2HubstaffProjectTasks
+    public function postAccelo2HubstaffProjectTasksTickets(){
+
+      $result = AcceloSchedule::postProjectTasks('TICKET');           
+      return response()->json( $result );
+    } //postAccelo2HubstaffProjectTasksTickets
 
     public function postAccelo2HubstaffProjectMilestone(){
       $error = []; $success = [];

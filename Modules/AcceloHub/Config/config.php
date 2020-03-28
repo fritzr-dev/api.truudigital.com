@@ -28,5 +28,5 @@ return [
     'cLimit'			=> 50,
     'return_error'      => false,
     'pLimit'             => 15,
-    'cLimit'             => 10,
+    'cLimit'             => 5,
 ];

@@ -248,7 +248,7 @@ class AcceloHubController extends Controller
         $hubstaff_full_name = '';
         foreach ($members_h as $key => $member) {
           if($post['hubstaff_id'] == $member['id']) {
-            $hubstaff_full_name = $member['firstname']." ".$member['surname'];            
+            $hubstaff_full_name = $member['name'];       
             $hubstaff_data    = json_encode($member);
             break;
           }
@@ -801,7 +801,7 @@ class AcceloHubController extends Controller
         $sort   = $request->get('sort');
         $by     = $request->get('by');
 
-        $records = AcceloSync::orderByRaw("id ASC");
+        $records = AcceloSync::orderByRaw("created_at DESC");
 
         
         $pagination = $records->paginate($limit);
