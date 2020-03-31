@@ -46,6 +46,7 @@
             <div class="box-body table-responsive no-padding">
               <table class="table table-hover">
                 <tr>
+                  <th>Hubstaff Project</th>
                   <th>ID::Acello</th>
                   <th>ID::Hubstaff</th>
                   {{-- <th>Hubstaff Description</th> --}}
@@ -55,6 +56,7 @@
                 </tr>
                 @forelse($records as $record)
                 <tr>
+                  <td>{{ $record->project_name }}</td>
                   <td><strong>{{ $record->accelo_task_id }}</strong> :: {{ $record->accelo_name }}</td>
                   <td><strong>{{ $record->hubstaff_task_id }}</strong> :: {{ $record->hubstaff_name }}</td>
                   {{-- <td>{{ $record->hubstaff_desc }}</td> --}}

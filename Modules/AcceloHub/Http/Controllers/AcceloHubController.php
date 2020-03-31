@@ -515,6 +515,7 @@ class AcceloHubController extends Controller
 
     public function tasks(Request $request)
     {
+
         $limit  = $request->get('limit', config('accelohub.pLimit'));
         $search = $request->get('s');
         $sort   = $request->get('sort');
@@ -536,9 +537,16 @@ class AcceloHubController extends Controller
 
         $records = $records->get();
         $records->map(function ($record) {
+            $project_id = $record->project_id;
+
+            $project  = AcceloProjects::where('id', $project_id)->first(); /*->select('acceloProj_data, hubstaffProj_data')*/
+            $project  = json_decode($project->hubstaffProj_data);
+
+            $project_name   = $project->name;
             $accelo_data    = json_decode($record->acceloTask_data);
             $hubstaff_data  = json_decode($record->hubstaffTask_data);
 
+            $record->project_name   = $project_name;
             $record->accelo_name    = '';
             $record->date_created   = '';
             $record->hubstaff_name  = '';
@@ -808,11 +816,27 @@ class AcceloHubController extends Controller
 
         $records = $records->get();
         $records->map(function ($entry) {
-            $error    = json_decode($entry->acceloPost_data);
-            $success  = json_decode($entry->hubstaffActivity_data);
-
+            $error    = json_decode($entry->error, true);
+            $success  = json_decode($entry->success, true);
             $entry->count_error      = $error ? count($error) : 0;
             $entry->count_success    = $success ? count($success) : 0;
+            
+            $err_list = '';
+            if($error) {
+              foreach ($error as $key => $err) {
+                $err_list .= isset($err['error']) ? "<li>".$err['error']."</li>" : "";
+              }
+            }
+            $entry->error_list    = $err_list;
+
+            $success_list = '';
+            if($success) {
+              foreach ($success as $key => $err) {
+                $success_list .= isset($err['success']) ? "<li>".$err['success']."</li>" : "";
+              }
+            }
+            $entry->success_list    = $success_list;
+
           return $entry;
         });
 

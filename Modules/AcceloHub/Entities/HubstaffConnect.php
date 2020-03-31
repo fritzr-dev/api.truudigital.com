@@ -357,9 +357,13 @@ class HubstaffConnect extends Model
 
         $title = isset($accelo['title']) ? $accelo['title'] : '';
         $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
+
+        $summary = $type."-".$accelo['id']." :: ".$title.$description;
+        $summary = substr($summary, 0, 200);
+
         $post = array(
               "name"        => $type."-".$accelo['id'].": ".$title, 
-              "summary"     => $type."-".$accelo['id']." :: ".$title.$description,
+              "summary"     => $summary,
               "description" => "Accelo $type ID:".$accelo['id'].". ".$description,
               'assignee_id' => $members 
             );

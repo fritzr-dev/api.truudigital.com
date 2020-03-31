@@ -26,6 +26,21 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')
         //          ->hourly();
+        
+        /*migrate project to DB and hubstaff*/
+        $schedule->command('accelohub:projects')->twiceDaily(1, 13);
+        /*migrate project task to DB*/
+        $schedule->command('accelohub:projects tasks')->everyFifteenMinutes();
+        /*migrate tickets to DB*/
+        $schedule->command('accelohub:projects tickets')->everyFifteenMinutes();
+
+        /*migrate taskDB to hubstaff*/
+        $schedule->command('accelohub:projects tasks2Hubstaff')->everyFifteenMinutes();
+        #$schedule->command('accelohub:projects taskticket2Hubstaff')->hourly();
+        
+        /*migrate timesheetDB to Accelo*/
+        $schedule->command('accelohub:projects timesheet2Accello')->twiceDaily(1, 13);
+        
     }
 
     /**

@@ -51,7 +51,9 @@ Route::group([
 
 Route::prefix('_clear')->group(function() {
 	Route::get('/', 'AcceloHubController@index');
+	Route::get('/hubtoken', 'HubstaffController@refreshToken');
 	Route::get('/members', 'AcceloHubController@ClearSessionMembers');
+
 });
 
 Route::prefix('accelo')->group(function() {

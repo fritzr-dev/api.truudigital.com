@@ -8,11 +8,12 @@ return [
     'client_secret' 	=> 'hkOxhZz2BvbfCxJAFqgrw9Hs3ZOGigH8',
 
     //hubstaff
-    'organization_id'  	=> 242946,
-    'project_ticket' 	=> 940266,
-    'default_user'     	=> 802748,
-    'default_team'     	=> 7092,
-    'default_client'    => 98359,
+    'organization_id'  	=> 230119,
+    'default_client'    => 94224,
+    'project_ticket' 	=> 968633,
+    'default_user'     	=> 3079,
+    //'default_team'     	=> 7092,
+
     'serviceClientID'        => 'vaQZ3O3oNd_fATpLFlgZPupWFkQOIUaHv895Vna_cMs',
     'serviceClientSecret'    => 'ji_KF70MAQBJNIMlhABGZnzcLViVtb9MrGA1d58ay2nWnJi1byUmeJwUeBr5sJKuMJ2Pc9pt2vREu8AMkfdPQw',
     'serviceRedirectURL'     => 'http://localhost:8000/hubstaff/oauth',
@@ -22,7 +23,7 @@ return [
     // This is the hubstaff base URL we can use to make authenticated API requests
     'apiURLBase'       => 'https://api.hubstaff.com/v2/',
 
-    'personal_access_tokens'  => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFbTcxbSIsImlzcyI6Imh0dHBzOi8vY WNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTIxNzE3NDEsImlhdCI6MTU4NDM5NTc0MSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCBodWJzdGFmZjpyZWFkIGh1YnN0YWZmOndyaXRlIn0.s7a2BKM4XkLhgnkQkWfTb7NWd0pju2x0Rk--oKoW81mJkU27daLDEUGW8fLDZ9WWo5kFFTQAMYb6p2RQx9cuHBttq00a9xSBzh8mEIlyDL3v5Babry_jDNasRBP-IskA74wI3efpOY3CNb9iPoSlJBunsTEZQjA7W8UBMwCMrZ-QzC7olF55XXQOWFdEzDNzWBgYU1Reda3NFbwSj-QBRb1yZS8QsOzjcJ7QtdpS7yjJoAYT2jr5DtrGLYrXoQIx8aQsp62Of11dFZDXtc51puqsAEhfYLIhNd5ECAiZZIs9Omvw-u3gzDF3cWpEv9E3_p7wLzcshNsgEE91eY-E5Q',
+    'personal_access_tokens'  => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImRlZmF1bHQifQ.eyJqdGkiOiJVRktFcS85RSIsImlzcyI6Imh0dHBzOi8vYWNjb3VudC5odWJzdGFmZi5jb20iLCJleHAiOjE1OTMzOTQ5NTUsImlhdCI6MTU4NTYxODk1NSwic2NvcGUiOiJvcGVuaWQgaHVic3RhZmY6cmVhZCBodWJzdGFmZjp3cml0ZSJ9.Tlg9XPiyE5jP08wTq2iKB28yUS_0mh4qmPp8X_ayoWzMa7G3v1ujbxBcyUBkMPm8RYeTcmKrJNRh1UAX6clQcgxVP99HZ46Msg-_mX3weujcfRFis6wVfoJ-IUoRYWhjO_XwvJr2LWKTxdvBFa29w3rM8DwzZC2uXBhYLPuY56TofPhFB0o8zskdy-03MWPjtftDPOkCtxqNPP0KHddLvu5GlqfN3vXXL76c5BDfPBZ_KhRSuf6KpHNgwuroEWrWZmGxnKjKE0ZPXDZuG2Tk-8XYeVFAzbahpzC1Fb_lPDUo4cdTIDXbdbwtPzUzrCsHqg4m0z4H_Zca8J93DTVjog',
 
     'limit'				=> 50,
     'cLimit'			=> 50,
