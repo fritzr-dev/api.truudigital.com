@@ -3,12 +3,12 @@
     "alias": "page",
     "description": "",
     "keywords": [],
-    "active": 1,
+    "active": 0,
     "order": 0,
     "providers": [
         "Modules\\Page\\Providers\\PageServiceProvider"
     ],
-    "aliases": {},
+    "aliases": [],
     "files": [
         "start.php"
     ],

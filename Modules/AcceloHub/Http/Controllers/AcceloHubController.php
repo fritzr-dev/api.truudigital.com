@@ -35,11 +35,10 @@ class AcceloHubController extends Controller
                 <a href="'.url('admin/accelohub/member/create').'"><i class="fa fa-circle-o"></i> New Member</a>
                 <hr />
               </li>
-              <li'. (\Request::is('admin/accelohub/organization') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/organization').'"><i class="fa fa-circle-o"></i> Manage Organizations</a></li>
               <li'. (\Request::is('admin/accelohub/projects') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/projects').'"><i class="fa fa-circle-o"></i> Projects</a></li>
               <li'. (\Request::is('admin/accelohub/tickets') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/tickets').'"><i class="fa fa-circle-o"></i> Tickets</a></li>
               <li'. (\Request::is('admin/accelohub/tasks') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/tasks').'"><i class="fa fa-circle-o"></i>Tasks</a></li>
-              <li'. (\Request::is('admin/accelohub/activities') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/activities').'"><i class="fa fa-circle-o"></i> Members Activities</a></li>
+              <li'. (\Request::is('admin/accelohub/activities') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/activities').'"><i class="fa fa-circle-o"></i> Timesheets</a></li>
               <li'. (\Request::is('admin/accelohub/logs') ? ' class="active"' : '') .'><a href="'.url('admin/accelohub/logs').'"><i class="fa fa-circle-o"></i> Migration Logs</a></li>' : '' ) .'
             </ul>
           </li>';
@@ -824,18 +823,24 @@ class AcceloHubController extends Controller
             $err_list = '';
             if($error) {
               foreach ($error as $key => $err) {
-                $err_list .= isset($err['error']) ? "<li>".$err['error']."</li>" : "";
+                if (isset($err['error'])) {
+                  $err_list .= "<li>".$err['error']."</li>";
+                } else if (isset($err['api'])) {
+                  $err_list .= "<li>".$err['api']['error']."</li>";                  
+                }
               }
+            } else {
+             $err_list = 'no error'; 
             }
             $entry->error_list    = $err_list;
 
-            $success_list = '';
+            /*$success_list = '';
             if($success) {
               foreach ($success as $key => $err) {
                 $success_list .= isset($err['success']) ? "<li>".$err['success']."</li>" : "";
               }
             }
-            $entry->success_list    = $success_list;
+            $entry->success_list    = $success_list;*/
 
           return $entry;
         });

@@ -36,7 +36,7 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">Timesheets</h3>
+              <h3 class="box-title">Migration Logs <span class="label label-info">{{ $pagination->total() }}</span></h3>
 
               <div class="box-tools">
                 <form method="get" action="{{ url('admin/accelohub/activities') }}">
@@ -65,53 +65,33 @@
                   <td title="{{ $record->created_at->diffForHumans() }}">{{ $record->created_at }}</td>
                   <td>
                     {{-- <span class="label label-success">{{ $record->count_success }}</span> --}}
-                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modal-info-{{ $record->id }}">{{ $record->count_success }}</button>                    
-                    <span class="label label-warning"></span>
-                    <div class="modal modal-warning fade" id="modal-info-{{ $record->id }}">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title"><i class="icon fa fa-check"></i> Success</h4>
-                          </div>
-                          <div class="modal-body">
-                            {!! $record->success_list !!}
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                          </div>
-                        </div>
-                        <!-- /.modal-content -->
-                      </div>
-                      <!-- /.modal-dialog -->
-                    </div>
-                    <!-- /.modal -->
+                    <button type="button" class="btn btn-info" style="cursor: text">{{ $record->count_success }}</button> 
                   </td>
                   <td>
                     {{-- <span class="label label-warning">{{ $record->count_error }}</span> --}}
-                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modal-warning-{{ $record->id }}">{{ $record->count_error }}</button>                    
-                    <span class="label label-warning"></span>
-                    <div class="modal modal-warning fade" id="modal-warning-{{ $record->id }}">
-                      <div class="modal-dialog">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                              <span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title"><i class="icon fa fa-warning"></i> API Error</h4>
+                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#modal-warning-{{ $record->id }}" @if ($record->count_error < 1) style="cursor: text" @endforelse>{{ $record->count_error }}</button>    
+                    @if ($record->count_error > 1)                    
+                      <div class="modal modal-warning fade" id="modal-warning-{{ $record->id }}">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title"><i class="icon fa fa-warning"></i> API Error</h4>
+                            </div>
+                            <div class="modal-body">
+                              {!! $record->error_list !!}
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+                            </div>
                           </div>
-                          <div class="modal-body">
-                            {!! $record->error_list !!}
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
-                          </div>
+                          <!-- /.modal-content -->
                         </div>
-                        <!-- /.modal-content -->
+                        <!-- /.modal-dialog -->
                       </div>
-                      <!-- /.modal-dialog -->
-                    </div>
-                    <!-- /.modal -->
+                      <!-- /.modal -->
+                    @endif
                   </td>
                 </tr>
                 @empty

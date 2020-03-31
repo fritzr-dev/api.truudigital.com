@@ -60,7 +60,7 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">Timesheets</h3>
+              <h3 class="box-title">Timesheets  <span class="label label-info">{{ $pagination->total() }}</span></h3>
 
               <div class="box-tools">
                 <form method="get" action="{{ url('admin/accelohub/activities') }}">

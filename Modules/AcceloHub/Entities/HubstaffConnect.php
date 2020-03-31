@@ -400,7 +400,7 @@ class HubstaffConnect extends Model
         } else {
             $postResult['error'] = false;
             $post['api'] = $accelo;
-            $postResult['data']  = array('api' => $hubstaff, 'post' => $post);
+            $postResult['data']  = array('error' => $hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
         }
 
         return $postResult;
