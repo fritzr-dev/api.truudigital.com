@@ -369,6 +369,34 @@ class AcceloConnect extends Model
       	return $tasks;
 	} //getProjectMilestones
 
+	public static function getLastMilestoneTasks($id, $accelo_last_task = ''){
+
+		$limit = 10; config('accelohub.limit');
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+		$post = [];
+		$post["_fields"] 	= "_ALL";
+		$post["_limit"] 	= 10;
+		if($accelo_last_task) {
+			$post["_filters"] 	= "against_id($id),order_by_asc(date_created),date_created_after($accelo_last_task)";
+		} else {
+			$post["_filters"] 	= "against_id($id),order_by_asc(date_created)";
+		}
+
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+		$tasks = self::MultiplecurlAccelo($params);
+
+		return $tasks;
+	} //getLastMilestoneTasks
+
 	public static function getProjects(){
 
 		$limit = config('accelohub.limit');
@@ -497,6 +525,74 @@ class AcceloConnect extends Model
 
       	return $tasks;
 	} //getProjectTasks
+
+	public static function getLastProjectTasks($project_id, $accelo_last_task = ''){
+		$limit = 10; config('accelohub.limit');
+
+      	$ch = curl_init();
+      	self::setCurl($ch);
+
+		$post = [];
+		$post["_fields"] 	= "_ALL";
+		$post["_limit"] 	= 10;
+		if($accelo_last_task) {
+			$post["_filters"] 	= "child_of_job($project_id),order_by_asc(date_created),date_created_after($accelo_last_task)";
+		} else {
+			$post["_filters"] 	= "child_of_job($project_id),order_by_asc(date_created)";
+		}
+
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+		$tasks = self::MultiplecurlAccelo($params);
+
+		return $tasks;
+		foreach ($tasks as $key => $task) {
+			echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+			$date_created = $task['date_created']; 
+		}
+
+		$post["_filters"] 	= "child_of_job($project_id),order_by_asc(date_created),date_created_after($date_created)";
+
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+		echo "<hr />";
+		$tasks2 = self::MultiplecurlAccelo($params);
+		foreach ($tasks2 as $key => $task) {
+			echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+			$date_created2 = $task['date_created']; 
+		}
+
+		$post["_filters"] 	= "child_of_job($project_id),order_by_asc(date_created),date_created_after($date_created2)";
+
+		$post_data = http_build_query($post);
+
+		$params 		= array();
+		$params['url'] 	= "https://truudigital.api.accelo.com/api/v0/tasks";
+		$params['type'] = "GET";
+		$params['data']	= $post_data;
+
+		echo "<hr />";
+		$tasks2 = self::MultiplecurlAccelo($params);
+		foreach ($tasks2 as $key => $task) {
+			echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+			$date_created2 = $task['date_created']; 
+		}
+
+		dd($date_created, $tasks,$date_created2, $tasks2);
+  		curl_close($ch);
+
+      	return $tasks;
+	} //getLastProjectTasks
 
 	public static function getTickets($p=0){
 		$ticket = config('accelohub.project_ticket');

@@ -19,6 +19,8 @@ class CreateAcceloProjectsTable extends Migration
             $table->string('hubstaff_project_id');
             $table->longText('acceloProj_data')->nullable();
             $table->longText('hubstaffProj_data')->nullable();
+            $table->longText('accelo_Tasks')->nullable();
+            $table->bigInteger('accelo_last_task')->nullable();
             $table->integer('status')->default('0');
             $table->timestamps();
         });

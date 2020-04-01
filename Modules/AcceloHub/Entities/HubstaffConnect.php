@@ -19,6 +19,8 @@ class HubstaffConnect extends Model
     static $user_agent = 'TruuDigital';
     static $apiCurl    = false;
     static $lastCurl   = [];
+    static $lastError  = [];
+    static $access_token  = false;
 
     public function __construct()
     {
@@ -26,6 +28,7 @@ class HubstaffConnect extends Model
     }
 
     public static function apiRequest($url, $post=FALSE, $headers=array()) {
+        
       $ch = curl_init($url);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
@@ -43,8 +46,8 @@ class HubstaffConnect extends Model
         } else if(isset($post['grant_type']) && $post['grant_type'] == 'refresh_token' ){
             $client_credentials = base64_encode($post['refresh_token']);
             $headers[] = 'Authorization: Basic ' . $client_credentials;
-        } else if(isset($_SESSION['access_token'])) {
-            $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
+        } else if(self::$access_token) {
+            $headers[] = 'Authorization: Bearer ' . self::$access_token;
         }
       curl_setopt($ch, CURLOPT_TIMEOUT, 0);
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -92,7 +95,8 @@ class HubstaffConnect extends Model
     }//setCurl
 
     public static function apiPostInitCurl($url, $post=FALSE, $type='') {
-      #$ch = curl_init($url);
+        $access_token = self::getToken();
+        #$ch = curl_init($url);
         $headers = [
         'Accept: application/json',
         'User-Agent: '.self::$user_agent
@@ -117,15 +121,15 @@ class HubstaffConnect extends Model
       }
 
         self::session_start();
-        if(isset($_SESSION['access_token'])) {
-            $headers[] = 'Authorization: Bearer ' . $_SESSION['access_token'];
+        if($access_token) {
+            $headers[] = 'Authorization: Bearer ' . $access_token;
         }
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 0);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
       $response = curl_exec($ch);
-      self::$lastCurl = $response;
+      self::$lastError = $response.' Authorization: Bearer (' . $access_token.")";
       return json_decode($response, true);
     } //apiPostInitCurl
 
@@ -143,23 +147,27 @@ class HubstaffConnect extends Model
         if (isset($token['access_token'])) {
             $_SESSION['access_token'] = $token['access_token'];
             $access_token = $token['access_token'];
+            self::$access_token = $token['access_token'];
         }  else if (isset($token['error'])) {
             $_SESSION['token_details'] = $token;
+            #$access_token = 'error';
         }
         return $access_token;
     }//refreshToken()
 
     public static function getToken(){
-        if (isset($_SESSION['access_token'])) {
+        if (isset($_SESSION['access_token']) && $_SESSION['access_token']) {
             return $_SESSION['access_token'];
-        }  else if (isset($token['error'])) {
+        }  else if(self::$access_token){
+            return self::$access_token;
+        }  else {
             return self::refreshToken();
         }
     } //getToken()
 
     public static function getResults($url, $list){
 
-        self::getToken();
+        #self::getToken();
 
     	$result = self::apiRequest($url);
         /*check API ERROR*/
@@ -188,7 +196,7 @@ class HubstaffConnect extends Model
 
     public static function getPageResults($url, $list, $next_page_start_id=''){
 
-        self::getToken();
+        #self::getToken();
         #$url = $url."&page_limit=50";
         $url = $next_page_start_id ? $url."&page_start_id=$next_page_start_id" : $url;
         #echo "$url <br />:";
@@ -310,6 +318,10 @@ class HubstaffConnect extends Model
         return $result;
     } //postProject
 
+    public static function parseTaskData(){
+        //updateOrCreate
+    }//getPostData
+
     public static function postTasksDB($accelo_project_id, $accelo, $type='TASK'){
         $error = ''; $success = ''; $result = ''; $migrated = '';
 
@@ -346,6 +358,43 @@ class HubstaffConnect extends Model
         self::$postTask = self::$postTask +1;
         return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
     } //postTasks
+
+    public static function addUpdateTasksDB($accelo_project_id, $accelo, $type='TASK'){
+        $error = ''; $success = ''; $result = ''; $migrated = '';
+
+        $accelo_id = $accelo['id'];
+        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->first();
+
+        $accelo_data = json_encode($accelo);
+        if(!$entry){
+            $post_task = [
+                              'project_id'          => $accelo_project_id,
+                              'accelo_task_id'      => $accelo_id,
+                              'hubstaff_task_id'    => '',
+                              'acceloTask_data'     => $accelo_data,
+                              'hubstaffTask_data'   => '',
+                              'type'                => $type,
+                              'status'              => 0,
+                            ];
+            //dd($post_task);
+            $new_task = AcceloTasks::create($post_task);
+            if($new_task) {
+                $success = $accelo;
+            } else {
+                $error = array('error' => 'Error in saving to hubstaff DB', 'api' => $accelo);
+            }
+        } else if($entry->status == 0) {
+            $update_entry = AcceloTasks::find($entry->id);
+            $update_entry->type             = $type;
+            $update_entry->acceloTask_data  = json_encode($accelo);
+            $update_entry->update();
+            $migrated = array('error' => 'Pending Migration', 'api' => $accelo);
+        } else {
+            $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
+        }
+        self::$postTask = self::$postTask +1;
+        return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+    } //addUpdateTasksDB
 
     public static function postTasks($accelo_project_id, $accelo, $type='TASK'){
         $postResult = array('success' => false, 'error' => false, 'data' => []);
@@ -400,7 +449,8 @@ class HubstaffConnect extends Model
         } else {
             $postResult['error'] = false;
             $post['api'] = $accelo;
-            $postResult['data']  = array('error' => $hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
+            #$postResult['data']  = array('error' => $hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
+            $postResult['data']  = array('error' => "[[ ".self::$lastError." ]] ".$hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
         }
 
         return $postResult;

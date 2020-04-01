@@ -810,6 +810,14 @@ class AcceloHubController extends Controller
 
         $records = AcceloSync::orderByRaw("created_at DESC");
 
+        if($search) {
+            $records = $records->where(function($q) use($search){
+              $q->where( 'module', 'like', "%$search%" );
+              $q->orWhere('error', 'like', "%$search%" );
+              $q->orWhere('success', 'like', "%$search%" );
+            });
+        }
+
         
         $pagination = $records->paginate($limit);
 

@@ -39,7 +39,7 @@
               <h3 class="box-title">Migration Logs <span class="label label-info">{{ $pagination->total() }}</span></h3>
 
               <div class="box-tools">
-                <form method="get" action="{{ url('admin/accelohub/activities') }}">
+                <form method="get" action="{{ url('admin/accelohub/logs') }}">
                   <div class="input-group input-group-sm" style="width: 150px;">
                     <input type="text" name="s" class="form-control pull-right" placeholder="Search" value="{{ request('s') }}" />
 
