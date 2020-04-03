@@ -89,6 +89,8 @@
                   <th>Reasons</th>
                   <th>Date Imported</th>
                   <th>Status</th>
+                  <th>Error</th>
+                  <th>Action</th>
                 </tr>
                 @forelse($records as $record)
                 <tr>
@@ -109,6 +111,8 @@
                     <span class="label label-warning">Pending</span>
                     @endif
                   </td>
+                  <td>{{ $record->api_error }}</td>
+                  <td width="30"><a data-toggle="tooltip" title="Delete" href="{{ url('admin/accelohub/activities/' . $record->id . '/delete') }}" onclick="return confirm('Are you sure you want to delete this item')"><i class="fa fa-trash"></i></a></td>
                 </tr>
                 @empty
                 <tr>

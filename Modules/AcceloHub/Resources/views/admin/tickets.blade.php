@@ -60,7 +60,7 @@
                   <td>{{ $record->created_at->diffForHumans() }}</td>
                   <td>
                     @if( $record->status )
-                    <span class="label label-success">Migrated</span>
+                    <span class="label label-success" title="{{ $record->updated_at->diffForHumans() }}">Migrated</span>
                     @else
                     <span class="label label-warning">Pending</span>
                     @endif

@@ -46,14 +46,19 @@
             <div class="box-body table-responsive no-padding">
               <table class="table table-hover">
                 <tr>
+                  <th>ID</th>
                   <th>ID::Acello</th>
                   <th>ID::Hubstaff</th>
                   <th>Hubstaff Description</th>
                   <th>Date Created</th>
                   <th>Status</th>
+                  <th>Task Migrated</th>
+                  <th>Task Pending</th>
+                  <th>Total Task</th>
                 </tr>
                 @forelse($records as $record)
                 <tr>
+                  <td>{{ $record->id }}</td>
                   <td><strong>{{ $record->accelo_project_id }}</strong> :: {{ $record->accelo_name }}</td>
                   <td><strong>{{ $record->hubstaff_project_id }}</strong> :: {{ $record->hubstaff_name }}</td>
                   <td>{{ $record->hubstaff_desc }}</td>
@@ -65,6 +70,9 @@
                     <span class="label label-warning">Inactive</span>
                     @endif
                   </td>
+                  <td>{{ $record->task_migrated }}</td>
+                  <td>{{ $record->task_pending }}</td>
+                  <td>{{ $record->task_pending + $record->task_migrated }}</td>
                 </tr>
                 @empty
                 <tr>

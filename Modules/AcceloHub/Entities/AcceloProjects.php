@@ -19,8 +19,10 @@ class AcceloProjects extends Model
       /*$accelo_project_id = 299;
       $records = AcceloProjects::where('accelo_project_id', $accelo_project_id)->get();
       return $records;*/
-      $records = AcceloProjects::where('accelo_project_id', '!=' , 1)->where('status', 0)->get();
-      #$records = AcceloProjects::limit(config('accelohub.cLimit'))->get();
+      #$records = AcceloProjects::where('accelo_project_id', '!=' , 1)->where('status', 0)->get();
+      $records = AcceloProjects::where('accelo_project_id', '!=' , 1)->get();
+      #$records = AcceloProjects::where('accelo_project_id', '!=' , 1)->where('id', 1)->get();
+      #$records = AcceloProjects::where('accelo_project_id', 288)->get();
 
       return $records;
     } //getAcceloDBProjects

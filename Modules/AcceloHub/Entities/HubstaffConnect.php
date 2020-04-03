@@ -242,10 +242,11 @@ class HubstaffConnect extends Model
         $result = self::getResults($url, 'user');
         return $result;
 
-    } //getOrganizationMembers
+    } //getUser
 
     public static function getOrganizationMembers(){
 
+        self::refreshToken();
         $url = "https://api.hubstaff.com/v2/organizations/".config('accelohub.organization_id')."/members?page_limit=50";
 
         $result = self::getResults($url, 'members');
@@ -326,8 +327,8 @@ class HubstaffConnect extends Model
         $error = ''; $success = ''; $result = ''; $migrated = '';
 
         $accelo_id = $accelo['id'];
-        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->first();
-
+        $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->where('project_id', $accelo_project_id)->first();
+        
         $accelo_data = json_encode($accelo);
         if(!$entry){
             $post_task = [
@@ -346,11 +347,14 @@ class HubstaffConnect extends Model
             } else {
                 $error = array('error' => 'Error in saving to hubstaff DB', 'api' => $accelo);
             }
-        } else if($entry->status == 0) {
-            $update_entry = AcceloTasks::find($entry->id);
-            $update_entry->type             = $type;
-            $update_entry->acceloTask_data  = json_encode($accelo);
-            $update_entry->update();
+        //} else if($entry->status == 0) {
+        } else if($entry) {
+
+            #$update_entry = AcceloTasks::find($entry->id);
+            $entry->project_id       = $accelo_project_id;
+            $entry->type             = $type;
+            $entry->acceloTask_data  = json_encode($accelo);
+            $entry->update();
             $migrated = array('error' => 'Pending Migration', 'api' => $accelo);
         } else {
             $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
@@ -407,13 +411,14 @@ class HubstaffConnect extends Model
         $title = isset($accelo['title']) ? $accelo['title'] : '';
         $description = isset($accelo['description']) ? " Description: ".$accelo['description'] : '';
 
-        $summary = $type."-".$accelo['id']." :: ".$title.$description;
-        $summary = substr($summary, 0, 200);
+        $name    = $type."-".$accelo['id']." :: ".$title;
+        $summary = $name.$description;
+        $summary_short = substr($summary, 0, 200);
 
         $post = array(
-              "name"        => $type."-".$accelo['id'].": ".$title, 
-              "summary"     => $summary,
-              "description" => "Accelo $type ID:".$accelo['id'].". ".$description,
+              "name"        => $name, 
+              "summary"     => $summary_short,
+              "details"     => "Accelo $type ID:".$accelo['id'].". ".$description,
               'assignee_id' => $members 
             );
         $url = "https://api.hubstaff.com/v2/projects/$accelo_project_id/tasks";

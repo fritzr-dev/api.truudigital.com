@@ -56,7 +56,7 @@
                 </tr>
                 @forelse($records as $record)
                 <tr>
-                  <td>{{ $record->project_name }}</td>
+                  <td><a href="{{ url('admin/accelohub/tasks?project_id='.$record->project_id) }}">{{ $record->project_name }}</a></td>
                   <td><strong>{{ $record->accelo_task_id }}</strong> :: {{ $record->accelo_name }}</td>
                   <td><strong>{{ $record->hubstaff_task_id }}</strong> :: {{ $record->hubstaff_name }}</td>
                   {{-- <td>{{ $record->hubstaff_desc }}</td> --}}
@@ -64,7 +64,7 @@
                   <td>{{ $record->created_at->diffForHumans() }}</td>
                   <td>
                     @if( $record->status )
-                    <span class="label label-success">Migrated</span>
+                    <span class="label label-success" title="{{ $record->updated_at->diffForHumans() }}">Migrated</span>
                     @else
                     <span class="label label-warning">Pending</span>
                     @endif

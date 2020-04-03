@@ -28,6 +28,6 @@ return [
     'limit'				=> 50,
     'cLimit'			=> 50,
     'return_error'      => false,
-    'pLimit'             => 15,
+    'pLimit'             => 20,
     'cLimit'             => 5,
 ];

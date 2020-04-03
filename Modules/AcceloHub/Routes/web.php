@@ -37,6 +37,7 @@ Route::group([
 	    Route::get('/tasks', 'AcceloHubController@tasks');
 	    Route::get('/tickets', 'AcceloHubController@tickets');
 	    Route::get('/activities', 'AcceloHubController@activities');
+	    Route::get('/activities/{id}/delete', 'AcceloHubController@timesheetDestroy');
 	    Route::post('/activities/import', 'AcceloHubController@importTimesheets');
 
 		Route::post('/activities/import', [
@@ -44,6 +45,7 @@ Route::group([
 	      'as' => 'activities.import'
 	    ]);
 	    Route::get('/logs', 'AcceloHubController@migrationLogs');
+	    Route::get('/logs/clear', 'AcceloHubController@clearLogs');
 
 	});
 
@@ -62,12 +64,13 @@ Route::prefix('accelo')->group(function() {
 	#Route::get('/members', 'AcceloController@getAcceloMembers');
 	#Route::get('/companies', 'AcceloController@getAcceloCompanies');
 	#Route::get('/projects', 'AcceloController@getProjects');
+	Route::get('/projectswithtask', 'AcceloController@getProjectsWithTask');
 	#Route::get('/tickets', 'AcceloController@getTickets');
 	#Route::get('/projects/{id}', 'AcceloController@getProject');
 	#Route::get('/projects/{id}/milestones', 'AcceloController@getMilestones');
 	#Route::get('/tasks', 'AcceloController@getAcceloTasks');
 	#Route::get('/activities', 'AcceloController@getAcceloActivities');
-	Route::get('/timesheets/post', 'AcceloController@postTimesheets');
+	#Route::get('/timesheets/post', 'AcceloController@postTimesheets');
 	Route::get('/reset', 'AcceloController@resetToken');
 
 	Route::get('/status', 'AcceloController@status');
@@ -77,9 +80,9 @@ Route::prefix('accelo')->group(function() {
 Route::prefix('hubstaff')->group(function() {
 	Route::get('/', 'HubstaffController@index');
 
-	Route::get('/timesheets', 'HubstaffController@getTimesheets');
-	Route::get('/notes', 'HubstaffController@getNotes');
-	Route::get('/activities', 'HubstaffController@getActivities');
+	#Route::get('/timesheets', 'HubstaffController@getTimesheets');
+	#Route::get('/notes', 'HubstaffController@getNotes');
+	#Route::get('/activities', 'HubstaffController@getActivities');
 
 	/*Route::get('/members', 'HubstaffController@getOrganizationMembers');
 	Route::get('/companies', 'HubstaffController@getClients');
@@ -88,9 +91,9 @@ Route::prefix('hubstaff')->group(function() {
 	Route::get('/tasks', 'HubstaffController@getTasks');*/
 	Route::get('/reset', 'HubstaffController@resetToken');
 
-	Route::get('/oauth', 'HubstaffController@oauth');
-	Route::get('/connect', 'HubstaffController@connect');
-	Route::get('/refreshToken', 'HubstaffController@refreshtoken');
+	#Route::get('/oauth', 'HubstaffController@oauth');
+	#Route::get('/connect', 'HubstaffController@connect');
+	#Route::get('/refreshToken', 'HubstaffController@refreshtoken');
 
 	Route::get('/status', 'HubstaffController@status');
 	Route::get('/developer', 'HubstaffController@developer');

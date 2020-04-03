@@ -49,6 +49,102 @@ class AcceloController extends Controller
       return response()->json($result);
     } //getAcceloCompanies
 
+    public function getProjectsWithTask(){
+
+      /*    $project_id = 288;
+          $ch = curl_init();
+          AcceloConnect::setCurl($ch);
+
+      $accelo_last_task = '';
+      $post = [];
+      $post["_fields"]  = "_ALL";
+      $post["_limit"]   = 10;
+      if($accelo_last_task) {
+        $post["_filters"]   = "child_of_job($project_id),order_by_asc(date_created),date_created_after($accelo_last_task)";
+      } else {
+        $post["_filters"]   = "child_of_job($project_id),order_by_asc(date_created)";
+      }
+
+      $post_data = http_build_query($post);
+
+      $params     = array();
+      $params['url']  = "https://truudigital.api.accelo.com/api/v0/tasks";
+      $params['type'] = "GET";
+      $params['data'] = $post_data;
+
+      $tasks = AcceloConnect::MultiplecurlAccelo($params);
+
+      foreach ($tasks as $key => $task) {
+        echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+        $date_created = $task['date_created']; 
+      }
+
+      $post["_filters"]   = "child_of_job($project_id),order_by_asc(date_created),date_created_after($date_created)";
+
+      $post_data = http_build_query($post);
+
+      $params     = array();
+      $params['url']  = "https://truudigital.api.accelo.com/api/v0/tasks";
+      $params['type'] = "GET";
+      $params['data'] = $post_data;
+
+      echo "<hr />";
+      $tasks2 = AcceloConnect::MultiplecurlAccelo($params);
+      foreach ($tasks2 as $key => $task) {
+        echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+        $date_created2 = $task['date_created']; 
+      }
+
+      $post["_filters"]   = "child_of_job($project_id),order_by_asc(date_created),date_created_after($date_created2)";
+
+      $post_data = http_build_query($post);
+
+      $params     = array();
+      $params['url']  = "https://truudigital.api.accelo.com/api/v0/tasks";
+      $params['type'] = "GET";
+      $params['data'] = $post_data;
+
+      echo "<hr />";
+      $tasks2 = AcceloConnect::MultiplecurlAccelo($params);
+      foreach ($tasks2 as $key => $task) {
+        echo "<br/>".date("Y/m/d H:i:s", $task['date_created'])." :: ". $task['id']." ::  ".$task['title'];
+        $date_created2 = $task['date_created']; 
+      }
+
+      dd($date_created, $tasks,$date_created2, $tasks2);
+      curl_close($ch);*/
+
+      $projects  = AcceloConnect::getProjects();
+      
+      foreach ($projects as $key => $project) {
+        $project_id   = $project['id'];
+        $project_name = $project['title'];
+        $post = [];
+        $post["_filters"]   = "child_of_job($project_id)";
+        $post_data = http_build_query($post);
+
+        $params     = array();
+        $params['url']  = "https://truudigital.api.accelo.com/api/v0/tasks/count";
+        $params['type'] = "GET";
+        $params['data'] = $post_data;
+
+        $count = AcceloConnect::getResult($params);
+        echo "<br /><hr />PROJECT: $project_name  <br />TASKS COUNT:".(isset($count['count']) ? $count['count'] : 0);
+        
+        /*$tasks = AcceloConnect::getProjectTasks($project_id);
+        $table = '';
+        foreach ($tasks as $key => $task) {
+          $table .= '<tr>
+                      <td>'.($key+1).'</td>
+                      <td>'.$task['id'].'</td>
+                      <td>'.$task['title'].'</td>
+                    </tr>';
+        }
+        echo "<table>$table</table>";*/
+        
+      }
+    }
+
     public function getProject($id){
 
       $result  = AcceloConnect::getProject($id);

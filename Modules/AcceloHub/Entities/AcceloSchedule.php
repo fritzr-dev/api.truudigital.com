@@ -111,6 +111,7 @@ class AcceloSchedule extends Model
     $records = AcceloProjects::getAcceloDBProjects();
     $project_task_updated = '';
     $project_atask = [];
+    $date_created = '';
     foreach ($records as $key => $record) {
       $project_id = $record->id;
       
@@ -121,10 +122,13 @@ class AcceloSchedule extends Model
       $accelo_last_task = $record->accelo_last_task;
 
       /*project task*/
+      $project_atask[$project_id] = [];
       $tasks  = AcceloConnect::getLastProjectTasks($accelo_project_id, $accelo_last_task);
 
       if ($tasks) {
         foreach ($tasks as $key => $task) {
+          $project_atask[$project_id][] = $task;
+
           $new_task = array('success' => '', 'migrated' => '', 'success' => 'error');
           
           $new_task = HubstaffConnect::postTasksDB($project_id, $task, 'TASK');
@@ -137,9 +141,11 @@ class AcceloSchedule extends Model
           }
         }        
         $last_task    = end($tasks);
-        $date_created = $last_task['date_created'];
-        $record->accelo_last_task     = $date_created;
-        $record->update(); 
+        if (isset($last_task['date_created'])) {
+          $date_created = $last_task['date_created'];
+          $record->accelo_last_task     = $date_created;
+          $record->update(); 
+        }
 
       } //if ($tasks) {
       /*project task*/
@@ -164,10 +170,10 @@ class AcceloSchedule extends Model
         }
       }
 
-      $project_task_updated = $project_task_updated .", ".$project_id;
+      $project_task_updated = $project_task_updated .", ".$project_id."::".$accelo_last_task." Task Count".count($project_atask[$project_id]);
     }
     
-    $result = array('CURL POST'=> HubstaffConnect::$cUrl_run, 'Project Updates'=> $project_task_updated, 'success' => $success, 'error' => $error );
+    $result = array('CURL POST'=> HubstaffConnect::$cUrl_run, 'Project Updates'=> $project_task_updated, 'Last Date'=> $date_created, 'success' => $success, 'error' => $error );
     
     AcceloSync::newLog( 'task2DB', $result ); 
     return $result; 

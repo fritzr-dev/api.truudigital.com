@@ -527,7 +527,7 @@ class AcceloConnect extends Model
 	} //getProjectTasks
 
 	public static function getLastProjectTasks($project_id, $accelo_last_task = ''){
-		$limit = 10; config('accelohub.limit');
+		$limit = 10; #config('accelohub.limit');
 
       	$ch = curl_init();
       	self::setCurl($ch);

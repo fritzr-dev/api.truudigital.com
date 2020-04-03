@@ -30,12 +30,12 @@ class Kernel extends ConsoleKernel
         /*migrate project to DB and hubstaff*/
         $schedule->command('accelohub:projects')->twiceDaily(1, 13);
         /*migrate project task to DB*/
-        $schedule->command('accelohub:projects tasks')->everyFifteenMinutes();
+        $schedule->command('accelohub:projects tasks')->cron('7 * * * *');
         /*migrate tickets to DB*/
-        $schedule->command('accelohub:projects tickets')->everyFifteenMinutes();
+        $schedule->command('accelohub:projects tickets')->cron('7 * * * *');
 
         /*migrate taskDB to hubstaff*/
-        $schedule->command('accelohub:projects tasks2Hubstaff')->everyFifteenMinutes();
+        $schedule->command('accelohub:projects tasks2Hubstaff')->everyTenMinutes();
         #$schedule->command('accelohub:projects taskticket2Hubstaff')->hourly();
         
         /*migrate timesheetDB to Accelo*/

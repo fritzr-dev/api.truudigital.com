@@ -431,27 +431,34 @@ class AcceloHubController extends Controller
         $pagination = $records->paginate($limit);
 
         $records = $records->get();
-        $records->map(function ($user) {
-            $accelo_data    = json_decode($user->acceloProj_data);
-            $hubstaff_data  = json_decode($user->hubstaffProj_data);
+        $records->map(function ($entry) {
+            $accelo_data    = json_decode($entry->acceloProj_data);
+            $hubstaff_data  = json_decode($entry->hubstaffProj_data);
             #dd($accelo_data, $hubstaff_data);
 
             if (isset($accelo_data->title)) {
-                $user->accelo_name  = $accelo_data->title;
-                $user->date_created = $accelo_data->date_created;
-                $user->status       = $accelo_data->standing;
+                $entry->accelo_name  = $accelo_data->title;
+                $entry->date_created = $accelo_data->date_created;
+                $entry->status       = $accelo_data->standing;
             }
             if (isset($hubstaff_data->name)) {
-                $user->hubstaff_name = $hubstaff_data->name;
-                $user->hubstaff_desc = $hubstaff_data->description;
+                $entry->hubstaff_name = $hubstaff_data->name;
+                $entry->hubstaff_desc = $hubstaff_data->description;
             }
 
-            if($user->accelo_project_id == 1) {
-                $user->accelo_name  = "_TICKETS";
-                $user->hubstaff_name = "_TICKETS";
+            if($entry->accelo_project_id == 1) {
+                $entry->accelo_name  = "_TICKETS";
+                $entry->hubstaff_name = "_TICKETS";
             }
 
-            return $user;
+
+            $task_migrated  = AcceloTasks::where('project_id', $entry->id)->where('status', 1)->orderByRaw("created_at DESC")->get()->count();
+            $task_pending   = AcceloTasks::where('project_id', $entry->id)->where('status', 0)->orderByRaw("created_at DESC")->get()->count();
+
+            $entry->task_migrated = $task_migrated;
+            $entry->task_pending  = $task_pending;
+
+            return $entry;
         });
 
 
@@ -469,7 +476,7 @@ class AcceloHubController extends Controller
         $sort   = $request->get('sort');
         $by     = $request->get('by');
 
-        $records = AcceloTasks::where('type', 'TICKET')->orderByRaw("id ASC");
+        $records = AcceloTasks::where('type', 'TICKET')->orderByRaw("created_at DESC");
 
         if($search) {
             $records = $records->where(function($q) use($search){
@@ -519,8 +526,9 @@ class AcceloHubController extends Controller
         $search = $request->get('s');
         $sort   = $request->get('sort');
         $by     = $request->get('by');
+        $project_id     = $request->get('project_id');
 
-        $records = AcceloTasks::where('type', 'TASK')->orderByRaw("id ASC");
+        $records = AcceloTasks::where('type', 'TASK')->orderByRaw("created_at DESC");
 
         if($search) {
             $records = $records->where(function($q) use($search){
@@ -530,6 +538,11 @@ class AcceloHubController extends Controller
               $q->orWhere('acceloTask_data', 'like', "%$search%" );
               $q->orWhere('hubstaffTask_data', 'like', "%$search%" );
             });
+        }
+        if($project_id) {
+            $records = $records->where(function($q) use($project_id){
+              $q->where( 'project_id',  $project_id);
+            });          
         }
         
         $pagination = $records->paginate($limit);
@@ -617,6 +630,18 @@ class AcceloHubController extends Controller
 
     } //activities
 
+    public function timesheetDestroy($id)
+    {
+      $entry = HubstaffActivity::find($id);
+      if(!$entry) {
+        return redirect()->to('admin/accelohub/activities')->withErrors(['msg','Something went wrong.']);
+      }
+
+      $entry->delete();
+
+      return redirect()->to('admin/accelohub/activities')->withSuccess('Timesheet successfully deleted.');
+    } //timesheetDestroy
+
     public function importTimesheets(Request $request){
 
       /*$request->validate([
@@ -668,16 +693,23 @@ class AcceloHubController extends Controller
           if($row == 1) {
             $h = $data;
             foreach ($h as $key => $name) {
-              $field[] = str_replace(' ', '_', $name);
+              $field_name = str_replace(' ', '_', $name);
+              if (isset($field[$field_name])) {
+                $field[$field_name] = $key;
+              }
+              #$field[]    = $field_name;
             }
             $field = array_flip($field);
             $row++;
             continue;
           }
+
           $import_row = [];
           for ($c=0; $c < $num; $c++) {
-            $import_row[$field[$c]] = $data[$c];
-            #echo $data[$c] . " $c<br />\n";
+            if (isset($field[$c])) {
+              #echo $data[$c] . " $c<br />\n";
+              $import_row[$field[$c]] = $data[$c];
+            }
           }
           if($import_row) {
             $import[] = $import_row;
@@ -685,6 +717,7 @@ class AcceloHubController extends Controller
         }
         fclose($handle);
       }
+      #dd($import);
 
       $new_import = []; 
       $timesheets = []; 
@@ -706,6 +739,7 @@ class AcceloHubController extends Controller
           }
 
           $user_name = $data['Member'];
+          #dd($user_name);
           $member = AcceloMembers::where('hubstaff_full_name', $user_name)->first();
           $user_id = 0;
           if($member) {
@@ -850,6 +884,14 @@ class AcceloHubController extends Controller
             }
             $entry->success_list    = $success_list;*/
 
+            $api    = json_decode($entry->result, true);
+            
+            $api_parse = '<pre>';
+            $api_parse .= print_r($api, true);
+            $api_parse .= '</pre>';
+
+            $entry->api    = $api_parse;
+
           return $entry;
         });
 
@@ -858,7 +900,15 @@ class AcceloHubController extends Controller
                     'pagination' => $pagination
                     ]);
 
-    } //AcceloSync
+    } //migrationLogs
+
+    public function clearLogs() {
+      AcceloSync::query()->delete();
+      return redirect()->
+           to('admin/accelohub/logs')->
+           withSuccess('Timesheets successfully cleared!')->
+           send();      
+    } //clearLogs
 
     function ClearSessionMembers(){
       if (!session_id()) session_start();

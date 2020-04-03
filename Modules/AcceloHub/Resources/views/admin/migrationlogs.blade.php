@@ -36,7 +36,7 @@
         <div class="col-xs-12">
           <div class="box">
             <div class="box-header">
-              <h3 class="box-title">Migration Logs <span class="label label-info">{{ $pagination->total() }}</span></h3>
+              <h3 class="box-title">Migration Logs <span class="label label-info">{{ $pagination->total() }}</span> <a class="btn btn-default btn-danger btn-xs" href="{{ url('admin/accelohub/logs/clear') }}">clear logs</a></h3>
 
               <div class="box-tools">
                 <form method="get" action="{{ url('admin/accelohub/logs') }}">
@@ -58,11 +58,12 @@
                   <th>Date Migrated</th>
                   <th>Success</th>
                   <th>Error</th>
+                  <th>Logs</th>
                 </tr>
                 @forelse($records as $record)
-                <tr>
+                <tr title="{{ $record->created_at->diffForHumans() }}">
                   <td>{{ $record->module }}</td>
-                  <td title="{{ $record->created_at->diffForHumans() }}">{{ $record->created_at }}</td>
+                  <td>{{ $record->created_at }}</td>
                   <td>
                     {{-- <span class="label label-success">{{ $record->count_success }}</span> --}}
                     <button type="button" class="btn btn-info" style="cursor: text">{{ $record->count_success }}</button> 
@@ -93,6 +94,29 @@
                       <!-- /.modal -->
                     @endif
                   </td>
+                  <td>                    
+                    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-logs-{{ $record->id }}" >View Logs</button>                    
+                    <div class="modal modal-default fade" id="modal-logs-{{ $record->id }}">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title"><i class="icon fa fa-info"></i> Cron Logs</h4>
+                          </div>
+                          <div class="modal-body">
+                            {!! $record->api !!}
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                        <!-- /.modal-content -->
+                      </div>
+                      <!-- /.modal-dialog -->
+                    </div>
+                    <!-- /.modal -->
+                  </td>                  
                 </tr>
                 @empty
                 <tr>
