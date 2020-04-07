@@ -48,12 +48,18 @@ class AcceloProject extends Command
         } else if($type == 'tasks') {
             $result = AcceloSchedule::getProjectTasks();
             $this->info('Get All Accelo Project Tasks and save to DB');
+        } else if($type == 'tasksupdate') {
+            $result = AcceloSchedule::getProjectTasks('updates'); 
+            $this->info('Get All Accelo Updates Tasks and save to DB');
         } else if($type == 'tickets') {
             $result = AcceloSchedule::getTickets();
             $this->info('Get All Accelo Tickets and save to DB');
         } else if($type == 'tasks2Hubstaff') {
             $result = AcceloSchedule::postProjectTasks();
             $this->info('Post all Accelo Tasks saved in DB to Hubstaff');
+        } else if($type == 'tasksupdate2Hubstaff') {
+            $result = AcceloSchedule::updateProjectTasks();
+            $this->info('Update all Accelo Tasks saved in DB to Hubstaff');
         } else if($type == 'taskticket2Hubstaff') {
             $result = AcceloSchedule::postProjectTasks('TICKET');
             $this->info('Post all Accelo Tasks saved in DB to Hubstaff');

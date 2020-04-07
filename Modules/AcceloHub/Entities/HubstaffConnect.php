@@ -94,7 +94,7 @@ class HubstaffConnect extends Model
         self::$apiCurl = $ch;
     }//setCurl
 
-    public static function apiPostInitCurl($url, $post=FALSE, $type='') {
+    public static function apiPostInitCurl($url, $post=FALSE, $type='' , $request_type = 'POST' ) {
         $access_token = self::getToken();
         #$ch = curl_init($url);
         $headers = [
@@ -114,10 +114,14 @@ class HubstaffConnect extends Model
         ];
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_type);
       } else {
           if($post)
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
+    
+          if ($request_type == 'PUT') {
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request_type);
+          }
       }
 
         self::session_start();
@@ -319,12 +323,49 @@ class HubstaffConnect extends Model
         return $result;
     } //postProject
 
+    public static function updateProject($hubstaff_id, $accelo){
+        $members = AcceloSchedule::$hubstaff_members;
+
+        /*$manager = $accelo['manager'];
+        $manager = AcceloMembers::get_HID_byAID($manager);
+        if($manager) {
+            $members[] = array("user_id" => $manager, "role"=> "manager");
+        }*/
+        #$manager = $manager ? $manager : config('accelohub.default_user');
+        #$members = array();
+        #$members[] = array("user_id" => config('accelohub.default_user'), "role"=> "user");
+
+        #dd($members);
+
+        $post = array(
+                "name"          => "PRJ-".$accelo['id']." ".$accelo['title']
+              );
+        //manager company
+        $url = "https://api.hubstaff.com/v2/projects/$hubstaff_id";
+        $result = self::apiPostInitCurl($url, $post, 'project', 'PUT');
+        if (isset($result['error'])) {
+            if ($result['error'] == 'invalid_token') {
+                if (self::$retoken == 0) {
+                    self::$retoken = 1;
+                    self::refreshToken();
+                    $result = self::apiPostInitCurl($url, $post, 'project', 'PUT');
+                } 
+            }
+            $result = '';
+        } else {
+            self::$retoken = 0;
+        }
+
+        #dd($result, $post);
+        return $result;
+    } //updateProject
+
     public static function parseTaskData(){
         //updateOrCreate
     }//getPostData
 
     public static function postTasksDB($accelo_project_id, $accelo, $type='TASK'){
-        $error = ''; $success = ''; $result = ''; $migrated = '';
+        $error = ''; $success = ''; $result = ''; $migrated = ''; $updated = '';
 
         $accelo_id = $accelo['id'];
         $entry = AcceloTasks::where('accelo_task_id', $accelo_id)->where('project_id', $accelo_project_id)->first();
@@ -350,6 +391,16 @@ class HubstaffConnect extends Model
         //} else if($entry->status == 0) {
         } else if($entry) {
 
+            if($entry->status != 0) {                    
+                $task_data = json_decode($entry->acceloTask_data, true);
+                #dd($task_data, $accelo);
+                if ( ($task_data['title'] != $accelo['title']) || $task_data['description'] != $accelo['description'] ) {
+                    $entry->status             = 2; // update status
+                    $updated = $accelo;
+                }
+            }
+
+
             #$update_entry = AcceloTasks::find($entry->id);
             $entry->project_id       = $accelo_project_id;
             $entry->type             = $type;
@@ -360,7 +411,7 @@ class HubstaffConnect extends Model
             $migrated = array('error' => 'Already Migrated', 'api' => $accelo);
         }
         self::$postTask = self::$postTask +1;
-        return array('success' => $success, 'error' => $error, 'migrated' => $migrated );
+        return array('success' => $success, 'error' => $error, 'migrated' => $migrated, 'updated' => $updated );
     } //postTasks
 
     public static function addUpdateTasksDB($accelo_project_id, $accelo, $type='TASK'){
@@ -460,6 +511,49 @@ class HubstaffConnect extends Model
 
         return $postResult;
     } //postTasks
+
+    public static function updateTasks($hubstaff_id, $accelo, $type='TASK'){
+        $postResult = array('success' => false, 'error' => false, 'data' => []);
+
+        $title       = isset($accelo['title']) ? $accelo['title'] : '';
+        $description = (isset($accelo['description']) && $accelo['description']) ? " Description: ".$accelo['description'] : '';
+
+        $name           = $type."-".$accelo['id']." :: ".$title;
+        $summary        = $name.$description;
+        $summary_short  = substr($summary, 0, 200);
+
+        $post = array(
+              "lock_version" => 0, 
+              "name"         => $name, 
+              "summary"      => $summary_short,
+              "details"      => "Accelo $type ID:".$accelo['id'].".".$description,
+            );
+        $url = "https://api.hubstaff.com/v2/tasks/$hubstaff_id";
+
+        $result = self::apiPostInitCurl($url, $post, 'task', 'PUT'); 
+
+        if (isset($result['error']) && $result['error'] == 'invalid_token') {
+            if (self::$retoken == 0) {
+                self::$retoken = 1;
+                self::refreshToken();
+                $result = self::apiPostInitCurl($url, $post, 'task', 'PUT');
+            } 
+        } else {
+            self::$retoken = 0;
+        }
+        $hubstaff = $result;
+        if(isset($hubstaff['task'])) {
+            $postResult['success']  = true;
+            $postResult['data']     = $hubstaff['task'];
+        } else {
+            $postResult['error'] = false;
+            $post['api'] = $accelo;
+            #$postResult['data']  = array('error' => $hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
+            $postResult['data']  = array('error' => "[[ ".self::$lastError." ]] ".$hubstaff['error'], 'api' => $hubstaff, 'post' => $post);
+        }
+
+        return $postResult;
+    } //updateTasks
 
     public static function postTask($project_id, $post){
 

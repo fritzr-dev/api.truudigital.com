@@ -117,11 +117,19 @@ Route::prefix('accelotohub')->group(function() {
 		2. get accelo task  
 		2. post data to DB for schedule as task type TASK */		
 	Route::get('/projects/tasks/schedule', 'AcceloController@postAccelo2DBProjectTasks');
+
+	/*
+		1. get accelo project from DB
+		2. get accelo task  
+		2. post data updated to DB for schedule as task type TASK */		
+	Route::get('/projects/tasks/update/schedule', 'AcceloController@updateAccelo2DBProjectTasks');
+
 	/*
 		1. get accelo task from DB
 		2. post data to hubstaff projects task */		
 	Route::get('/projects/tasks', 'AcceloController@postAccelo2HubstaffProjectTasks'); 
 	Route::get('/projects/tasks/tickets', 'AcceloController@postAccelo2HubstaffProjectTasksTickets'); 
+	Route::get('/projects/tasks/update', 'AcceloController@updateAccelo2HubstaffProjectTasks'); 
 
 
 	#Route::get('/tickets', 'AcceloController@postAccelo2HubstaffTickets');

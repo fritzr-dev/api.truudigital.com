@@ -554,7 +554,7 @@ class AcceloHubController extends Controller
             $project  = AcceloProjects::where('id', $project_id)->first(); /*->select('acceloProj_data, hubstaffProj_data')*/
             $project  = json_decode($project->hubstaffProj_data);
 
-            $project_name   = $project->name;
+            $project_name   = isset($project->name) ? $project->name : '';
             $accelo_data    = json_decode($record->acceloTask_data);
             $hubstaff_data  = json_decode($record->hubstaffTask_data);
 

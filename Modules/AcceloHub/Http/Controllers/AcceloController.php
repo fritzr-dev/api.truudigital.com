@@ -231,6 +231,13 @@ class AcceloController extends Controller
       $result = AcceloSchedule::postProjectTasks();           
       return response()->json( $result );
     } //postAccelo2HubstaffProjectTasks
+
+    public function updateAccelo2HubstaffProjectTasks(){
+
+      $result = AcceloSchedule::updateProjectTasks();           
+      return response()->json( $result );
+    } //updateAccelo2HubstaffProjectTasks
+
     public function postAccelo2HubstaffProjectTasksTickets(){
 
       $result = AcceloSchedule::postProjectTasks('TICKET');           
@@ -293,6 +300,11 @@ class AcceloController extends Controller
       $result = AcceloSchedule::getProjectTasks(); 
       return response()->json( $result );
     } //postAccelo2DBProjectTasks
+
+    public function updateAccelo2DBProjectTasks(){
+      $result = AcceloSchedule::getProjectTasks('updates'); 
+      return response()->json( $result );
+    } //updateAccelo2DBProjectTasks
 
     public function postAccelo2HubstaffProjectMilestoneTask(){
       $error = []; $success = [];
