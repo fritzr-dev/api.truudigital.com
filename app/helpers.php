@@ -66,7 +66,7 @@ class Helper {
     $module_method = $module[3];
 
     //dd($user->groups()->with(['permits'])->get()->toArray());
-
+    //dd($user->permits->toArray());
 
     // check if user has permit itself
     $permitted = $user->permits()->where(function($q) use($module_method){

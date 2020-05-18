@@ -453,8 +453,7 @@ class HubstaffConnect extends Model
 
     public static function postTasks($accelo_project_id, $accelo, $type='TASK'){
         $postResult = array('success' => false, 'error' => false, 'data' => []);
-
-        $assignee   = isset($accelo['assignee']) ? $accelo['assignee'] : $accelo['manager'];
+        $assignee   = (isset($accelo['assignee']) && $accelo['assignee']) ? $accelo['assignee'] : $accelo['manager'];
         $members    = AcceloMembers::get_HID_byAID($assignee);
 
         $members    = $members ? $members : config('accelohub.default_user');

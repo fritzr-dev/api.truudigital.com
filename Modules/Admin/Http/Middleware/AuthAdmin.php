@@ -18,18 +18,17 @@ class AuthAdmin
    */
   public function handle(Request $request, Closure $next)
   {
-
     if( !$session_key = $request->session()->get('session_key') ) {
-      return redirect()->to('admin/login')->send();
+      return redirect()->to('admin/login');
     }
     
     if( !Helper::checkSession($session_key,'admin') ){
-      return redirect()->to('/')->send();
+      return redirect()->to('/');
     }
 
 
     if( !Helper::hasAccess() ) {
-      return redirect()->to('/admin')->send();
+      return redirect()->to('admin');
     }
 
     return $next($request);

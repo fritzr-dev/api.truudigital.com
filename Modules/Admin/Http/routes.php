@@ -7,7 +7,7 @@ Route::group([
   function() {
 
     Route::get('/',function(){
-      redirect()->to('admin/dashboard')->send();
+      return redirect()->to('admin/dashboard');
     });
     
     Route::get('dashboard', [
